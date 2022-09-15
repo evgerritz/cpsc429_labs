@@ -1,2 +1,0 @@
-/home/evgerritz/hello.o
-

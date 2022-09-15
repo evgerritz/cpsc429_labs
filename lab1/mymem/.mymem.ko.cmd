@@ -1,1 +1,0 @@
-cmd_/home/evgerritz/mymem/mymem.ko := ld -r -m elf_x86_64 --build-id=sha1  -T scripts/module.lds -o /home/evgerritz/mymem/mymem.ko /home/evgerritz/mymem/mymem.o /home/evgerritz/mymem/mymem.mod.o;  true
