@@ -1,0 +1,7 @@
+modules.order
+Module.symvers
+mymem.ko
+mymem.mod
+mymem.mod.c
+mymem.mod.o
+mymem.o
