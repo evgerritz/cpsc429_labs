@@ -96,6 +96,7 @@ module_exit(mymem_exit);
 
 static int mymem_open(struct inode *inode, struct file *file) {
     printk("Driver: open()\n");
+    pos = 0;
     return 0;
 }
 

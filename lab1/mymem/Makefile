@@ -11,7 +11,7 @@ test: test.o
 	gcc test.c -o test && ./test
 
 threads: threads.o
-	gcc threads.c -o threads && ./threads
+	gcc threads.c -o threads 
 
 run:
 	make all && sudo insmod mymem.ko && make test

@@ -1,9 +1,10 @@
 #include "threads.h"
 
-#define INIT_VAL 0xabc
+#define INIT_VAL 0xdeadbeef
 #define NUM_BYTES 8
 
 int mem_fd;
+long num_missed = 0;
 
 void mem_rewind() {
     lseek(mem_fd, 0, SEEK_SET);
@@ -24,13 +25,15 @@ uint64_t get_counter() {
 void * do_work(void * n_ptr) {
     int n = *((int *) n_ptr);
     int i;
-    uint64_t current_val;
+    uint64_t current_val, read_val;
     for (i=0; i<n; i++) {
         current_val = get_counter();
-        printf("num: 0x%lX\n", current_val);
         set_counter(current_val+1);
-        current_val = get_counter();
-        printf("now: 0x%lX\n", current_val);
+        read_val = get_counter();
+        if (read_val > current_val+1) {
+            num_missed++;
+        }
+        //printf("%lu -> %lu\n", current_val-INIT_VAL, read_val-INIT_VAL);
     }
 }
 
@@ -47,15 +50,26 @@ void create_workers(int w, int n) {
     }
 }
 
-int main ()
+int main (int argc, char **argv)
 {
-    mem_fd = open("/dev/mymem", O_RDWR);
-    mem_rewind(mem_fd);
-    const uint64_t val = INIT_VAL;
-    write(mem_fd, &val, NUM_BYTES);
+    // input format: ./threads w n
+    int w = 0;
+    int n = 0;
+    sscanf(argv[1], "%d", &w);
+    sscanf(argv[2], "%d", &n);
 
-    create_workers(1, 3);
+    mem_fd = open("/dev/mymem", O_RDWR);
+    set_counter(INIT_VAL);
+
+    create_workers(w, n);
+
+    uint64_t correct = INIT_VAL + (n * w);
+    if (get_counter() != correct) {
+        printf("final: %lu\tcorrect: %lu\n", get_counter()-INIT_VAL, correct-INIT_VAL);
+    }
+    printf("number missed: %lu\n", num_missed);
 
     close(mem_fd);
+
     return 0;
 }
