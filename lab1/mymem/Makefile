@@ -11,8 +11,8 @@ test: test.o
 	gcc test.c -o test && ./test
 
 threads: threads.o
-	gcc threads.c -o threads 
+	gcc -g3 threads.c -o threads 
 
 run:
-	make all && sudo insmod mymem.ko && make test
+	make all && sudo insmod mymem.ko; make threads && ./threads 5 150000
 
