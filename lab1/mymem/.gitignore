@@ -5,3 +5,7 @@ mymem.mod
 mymem.mod.c
 mymem.mod.o
 mymem.o
+threads.o
+threads
+test.o
+test
