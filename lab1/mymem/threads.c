@@ -8,20 +8,20 @@ pthread_mutex_t mymem_lock;
 
 // reset position in memory buffer to 0
 void mem_rewind() {
-    lseek(mem_fd, 0, SEEK_SET);
+    (void) lseek(mem_fd, 0, SEEK_SET);
 }
 
 // utility function for setting the counter to value
 void set_counter(const uint64_t value) {
     mem_rewind();
-    write(mem_fd, &value, NUM_BYTES);
+    (void) write(mem_fd, &value, NUM_BYTES);
 }
 
 // utility function for returning the current value of the counter
 uint64_t get_counter() {
     uint64_t value;
     mem_rewind();
-    read(mem_fd, &value, NUM_BYTES);
+    (void) read(mem_fd, &value, NUM_BYTES);
     return value;
 }
 
