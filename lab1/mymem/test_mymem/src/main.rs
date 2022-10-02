@@ -17,18 +17,15 @@ struct RWTime {
     write: f64 
 }
 
-fn duration_to_secs(duration: Duration) -> f64 {
-    duration.as_secs() as f64 + (duration.subsec_nanos() as f64) * 1e-9
-}
 
 // gets time measurements for reads/writes of size num_bytes and
 // fills out an rw_time struct
 fn time_to_read_write(num_bytes: usize) -> io::Result<RWTime> {
     let mut f = File::options().read(true).write(true).open("/dev/mymem")?;
 
-    let mut total_diff_wrt = Duration::new(0, 0);
-    let mut total_diff_rd = Duration::new(0, 0);
-    const TRIALS: u64 = 100;
+    let mut total_wrt_time: u64 = 0;
+    let mut total_rd_time: u64 = 0;
+    const TRIALS: u64 = 1000;
     for _ in 0..TRIALS {
         // generate random buffer, to ensure no caching between trials
         let mut buf_to_wrt: Vec<u8> = vec![0; num_bytes];
@@ -44,23 +41,26 @@ fn time_to_read_write(num_bytes: usize) -> io::Result<RWTime> {
         let n = f.write(&buf_to_wrt[0..])?;
         assert!(n == num_bytes);
         let cpu_time: Duration = start.try_elapsed().expect("Getting process time failed");
-        total_diff_wrt += cpu_time;
+        //println!("{:?}\t{:?}\t{:?}", cpu_time, cpu_time.as_secs(), cpu_time.subsec_micros());
+        total_wrt_time += cpu_time.subsec_micros() as u64;
 
 
         f.rewind()?;
-        let start = ProcessTime::try_now().expect("Getting process time failed");
+        let start2 = ProcessTime::try_now().expect("Getting process time failed");
         let n = f.read(&mut buf_to_rd)?;
         assert!(n == num_bytes);
-        let cpu_time: Duration = start.try_elapsed().expect("Getting process time failed");
-        total_diff_rd += cpu_time;
+        let cpu_time2: Duration = start2.try_elapsed().expect("Getting process time failed");
+        //println!("{:?}\t{:?}\t{:?}", cpu_time2, cpu_time2.as_secs(), cpu_time2.subsec_micros());
+        total_rd_time += cpu_time2.subsec_micros() as u64;
+
         for i in 0..num_bytes {
             assert!(buf_to_wrt[i] == buf_to_rd[i]);
         }
     }
 
     Ok(RWTime {
-        read: duration_to_secs(total_diff_rd)*1e6 / TRIALS as f64,
-        write: duration_to_secs(total_diff_wrt)*1e6 / TRIALS as f64,
+        read: total_rd_time as f64 / TRIALS as f64 ,
+        write: total_wrt_time as f64 / TRIALS as f64 ,
     })
 }
 
