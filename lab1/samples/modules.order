@@ -1,1 +1,3 @@
 samples/rust/rust_minimal.ko
+samples/rust/rust_mymem.ko
+samples/rust/rust_chrdev.ko

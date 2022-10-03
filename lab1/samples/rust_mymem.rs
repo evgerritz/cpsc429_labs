@@ -1,49 +1,34 @@
 // SPDX-License-Identifier: GPL-2.0
 
-//! Rust character device sample.
+//! Rust mymem module
 
 use kernel::prelude::*;
-use kernel::{chrdev, file};
 
 module! {
-    type: RustChrdev,
-    name: "mymem",
+    type: RustMyMemDev ,
+    name: "rust_mymem",
     author: "Evan Gerritz",
-    description: "mymem char device driver in Rust",
+    description: "Rust minimal sample",
     license: "GPL",
 }
 
-struct RustFile;
+struct RustMyMemDev {
+    message: String,
+}
 
-#[vtable]
-impl file::Operations for RustFile {
-    fn open(_shared: &(), _file: &file::File) -> Result {
-        Ok(())
+impl kernel::Module for RustMyMemDev {
+    fn init(_name: &'static CStr, _module: &'static ThisModule) -> Result<Self> {
+        pr_info!("mymem module in rust (init)\n");
+
+        Ok( RustMyMemDev {
+            message: "on the heap!".try_to_owned()?,
+        })
     }
 }
 
-struct RustMymem {
-    _dev: Pin<Box<chrdev::Registration<2>>>,
-}
-
-impl kernel::Module for RustMymem {
-    fn init(name: &'static CStr, module: &'static ThisModule) -> Result<Self> {
-        pr_info!("mymem (init)\n");
-
-        let mut chrdev_reg = chrdev::Registration::new_pinned(name, 0, module)?;
-
-        // Register the same kind of device twice, we're just demonstrating
-        // that you can use multiple minors. There are two minors in this case
-        // because its type is `chrdev::Registration<2>`
-        chrdev_reg.as_mut().register::<RustFile>()?;
-        chrdev_reg.as_mut().register::<RustFile>()?;
-
-        Ok(RustChrdev { _dev: chrdev_reg })
-    }
-}
-
-impl Drop for RustChrdev {
+impl Drop for RustMyMemDev {
     fn drop(&mut self) {
-        pr_info!("Rust character device sample (exit)\n");
+        pr_info!("My message is {}\n", self.message);
+        pr_info!("Rust minimal sample (exit)\n");
     }
 }

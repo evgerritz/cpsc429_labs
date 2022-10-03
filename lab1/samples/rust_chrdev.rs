@@ -7,9 +7,9 @@ use kernel::{chrdev, file};
 
 module! {
     type: RustChrdev,
-    name: "mymem",
-    author: "Evan Gerritz",
-    description: "mymem char device driver in Rust",
+    name: "rust_chrdev",
+    author: "Rust for Linux Contributors",
+    description: "Rust character device sample",
     license: "GPL",
 }
 
@@ -22,13 +22,13 @@ impl file::Operations for RustFile {
     }
 }
 
-struct RustMymem {
+struct RustChrdev {
     _dev: Pin<Box<chrdev::Registration<2>>>,
 }
 
-impl kernel::Module for RustMymem {
+impl kernel::Module for RustChrdev {
     fn init(name: &'static CStr, module: &'static ThisModule) -> Result<Self> {
-        pr_info!("mymem (init)\n");
+        pr_info!("Rust character device sample (init)\n");
 
         let mut chrdev_reg = chrdev::Registration::new_pinned(name, 0, module)?;
 
