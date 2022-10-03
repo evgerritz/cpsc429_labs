@@ -5,7 +5,7 @@ all:
 	make -C $(KDIR) M=$(PWD) modules
 
 clean:
-	make -C $(KDIR) M=$(PWD) clean
+	make -C $(KDIR) M=$(PWD) clean; rm test threads
 
 test: test.o
 	gcc test.c -o test && ./test

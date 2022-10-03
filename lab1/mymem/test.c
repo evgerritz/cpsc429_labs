@@ -80,7 +80,7 @@ int main () {
     int i;
     for (i = 0; i < NUM_SIZES; i++) {
         times[i] = time_to_read_write(sizes[i]);
-        printf("%d\t:%f\t%f\n", sizes[i], times[i]->read, times[i]->write);
+        printf("%f\t%f\n", times[i]->read, times[i]->write);
     }
 
     // free the rw_time structs
