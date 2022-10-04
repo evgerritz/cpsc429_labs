@@ -10,6 +10,28 @@ use kernel::{
     sync::{CondVar, Mutex, Ref, RefBorrow, UniqueRef},
 };
 
+struct RustMymem {
+    _dev: Pin<Box<miscdev::Registration<Token>>>,
+}
+
+impl kernel::Module for RustMymem {
+    fn init(name: &'static CStr, _module: &'static ThisModule) -> Result<Self> {
+        pr_info!("rust_mymem (init)\n");
+
+        let state = SharedState::try_new()?;
+
+        Ok(RustMymem {
+            _dev: miscdev::Registration::new_pinned(fmt!("{name}"), state)?,
+        })
+    }
+}
+
+impl Drop for RustMymem {
+    fn drop(&mut self) {
+        pr_info!("rust_mymem (init)\n");
+    }
+}
+
 module! {
     type: RustMymem,
     name: "rust_mymem",
@@ -116,27 +138,5 @@ impl file::Operations for Token {
         // Notify a possible reader waiting.
         shared.state_changed.notify_all();
         Ok(data.len())
-    }
-}
-
-struct RustMymem {
-    _dev: Pin<Box<miscdev::Registration<Token>>>,
-}
-
-impl kernel::Module for RustMymem {
-    fn init(name: &'static CStr, _module: &'static ThisModule) -> Result<Self> {
-        pr_info!("rust_mymem (init)\n");
-
-        let state = SharedState::try_new()?;
-
-        Ok(RustMymem {
-            _dev: miscdev::Registration::new_pinned(fmt!("{name}"), state)?,
-        })
-    }
-}
-
-impl Drop for RustMymem {
-    fn drop(&mut self) {
-        pr_info!("rust_mymem (init)\n");
     }
 }
