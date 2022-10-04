@@ -77,7 +77,7 @@ struct Token;
 impl file::Operations for Token {
     type Data = Ref<SharedState>;
     type OpenData = Ref<SharedState>;
-    {
+    
     fn open(shared: &Ref<SharedState>, _file: &File) -> Result<Self::Data> {
         Ok(shared.clone())
     }
