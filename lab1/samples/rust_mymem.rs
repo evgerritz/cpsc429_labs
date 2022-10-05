@@ -25,7 +25,8 @@ struct RustMymem {
 const BUFFER_SIZE: usize = 512*1024;
 
 struct Device {
-    buffer: Mutex<Vec<u8>>,
+    //buffer: Mutex<Vec<u8>>,
+    buffer: Mutex<[u8; BUFFER_SIZE]>,
     pos: Mutex<usize>
 }
 
@@ -34,7 +35,7 @@ impl kernel::Module for RustMymem {
         pr_info!("rust_mymem (init)\n");
 
         let state = Ref::try_new( Device {
-            buffer: Mutex::new(Vec::new()),
+            buffer: Mutex::new([0u8; BUFFER_SIZE]),
             pos: Mutex::new(0)
         })?;
 
@@ -62,7 +63,6 @@ impl file::Operations for RustMymem {
 
     fn read( shared: RefBorrow<'_, Device>, _file: &File,
         data: &mut impl IoBufferWriter, offset: u64 ) -> Result<usize> {
-        pr_info!("offset, read: {:?}", offset);
         let buffer = shared.buffer.lock();
         let mut offset_p = shared.pos.lock();
 
@@ -89,10 +89,10 @@ impl file::Operations for RustMymem {
 
     fn write( shared: RefBorrow<'_, Device>, _: &File,
         data: &mut impl IoBufferReader, offset: u64) -> Result<usize> {
-        pr_info!("offset, write: {:?}", offset);
         if data.is_empty() {
             return Ok(0);
         }
+
         let mut buffer = shared.buffer.lock();
         let mut offset_p = shared.pos.lock();
 
@@ -103,9 +103,9 @@ impl file::Operations for RustMymem {
             return Err(EINVAL);
         }
 
-        if new_len > buffer.len() {
+        /*if new_len > buffer.len() {
             buffer.try_resize(new_len, 0)?;
-        }
+        }*/
         
         data.read_slice(&mut buffer[*offset_p..][..num_bytes])?;
         *offset_p += num_bytes;
@@ -115,12 +115,18 @@ impl file::Operations for RustMymem {
     fn seek( shared: RefBorrow<'_, Device>, _file: &File,
         offset: SeekFrom) -> Result<u64> {
         let mut old_offset = shared.pos.lock();
-        let mut new_offset: usize;
+        let new_offset: usize;
+
         match offset {
             SeekFrom::Start(val) => new_offset = val as usize,
             SeekFrom::End(val) => new_offset = BUFFER_SIZE + val as usize,
             SeekFrom::Current(val) => new_offset = *old_offset + val as usize,
         }
+        
+        if new_offset > BUFFER_SIZE {
+            return Err(EINVAL);
+        }
+
         *old_offset = new_offset;
         Ok(new_offset as u64)
     }
