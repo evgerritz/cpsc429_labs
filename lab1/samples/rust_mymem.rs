@@ -64,7 +64,7 @@ impl file::Operations for RustMymem {
         data: &mut impl IoBufferWriter, offset: u64 ) -> Result<usize> {
         pr_info!("offset, read: {:?}", offset);
         let buffer = shared.buffer.lock();
-        let offset: usize = *shared.pos.lock();
+        let offset_p: = shared.pos.lock();
 
         if data.is_empty() {
             return Ok(0);
@@ -76,13 +76,13 @@ impl file::Operations for RustMymem {
             num_bytes = max_bytes; 
         }
 
-        if num_bytes + offset > BUFFER_SIZE {
+        if num_bytes + *offset_p > BUFFER_SIZE {
             return Err(EINVAL);
         }
         // Write starting from offset
-        data.write_slice(&buffer[offset..][..num_bytes])?;
+        data.write_slice(&buffer[*offset_p..][..num_bytes])?;
 
-        offset += num_bytes;
+        *offset_p += num_bytes;
 
         Ok(num_bytes)
     }
@@ -94,11 +94,11 @@ impl file::Operations for RustMymem {
             return Ok(0);
         }
         let mut buffer = shared.buffer.lock();
-        let offset: usize = *shared.pos.lock();
+        let offset_p = shared.pos.lock();
 
         let num_bytes: usize = data.len();
 
-        let new_len = num_bytes + offset;
+        let new_len = num_bytes + *offset_p;
         if new_len > BUFFER_SIZE {
             return Err(EINVAL);
         }
@@ -107,8 +107,8 @@ impl file::Operations for RustMymem {
             buffer.try_resize(new_len, 0)?;
         }
         
-        data.read_slice(&mut buffer[offset..][..num_bytes])?;
-        offset += num_bytes;
+        data.read_slice(&mut buffer[*offset_p..][..num_bytes])?;
+        *offset_p += num_bytes;
         Ok(num_bytes)
     }
 
