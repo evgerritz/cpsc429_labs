@@ -1,9 +1,13 @@
 //! Scull module in Rust.
 
-use kernel::io_buffer::{IoBufferReader, IoBufferWriter};
-use kernel::prelude::*;
-use kernel::sync::{smutex::Mutex, Ref, RefBorrow};
 use kernel::{file, miscdev};
+use kernel::prelude::*;
+use kernel::{
+    file::{self, File, SeekFrom},
+    io_buffer::{IoBufferReader, IoBufferWriter},
+    miscdev,
+    sync::{smutex::Mutex, Ref, RefBorrow},
+};
 
 module! {
     type: Scull,
