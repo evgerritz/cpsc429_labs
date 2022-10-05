@@ -30,7 +30,7 @@ impl file::Operations for Scull {
     type Data = Ref<Device>;
 
     fn open(context: &Ref<Device>, file: &file::File) -> Result<Ref<Device>> {
-        pr_info!("File for device {} was opened\n", context.number);
+        //pr_info!("File for device {} was opened\n", context.number);
         if file.flags() & file::flags::O_ACCMODE == file::flags::O_WRONLY {
             context.contents.lock().clear();
         }
@@ -43,7 +43,7 @@ impl file::Operations for Scull {
         writer: &mut impl IoBufferWriter,
         offset: u64,
     ) -> Result<usize> {
-        pr_info!("File for device {} was read\n", data.number);
+        //pr_info!("File for device {} was read\n", data.number);
         let offset = offset.try_into()?;
         let vec = data.contents.lock();
         let len = core::cmp::min(writer.len(), vec.len().saturating_sub(offset));
@@ -57,7 +57,7 @@ impl file::Operations for Scull {
         reader: &mut impl IoBufferReader,
         offset: u64,
     ) -> Result<usize> {
-        pr_info!("File for device {} was written\n", data.number);
+        //pr_info!("File for device {} was written\n", data.number);
         let offset = offset.try_into()?;
         let len = reader.len();
         let new_len = len.checked_add(offset).ok_or(EINVAL)?;
@@ -72,7 +72,7 @@ impl file::Operations for Scull {
 
 impl kernel::Module for Scull {
     fn init(_name: &'static CStr, _module: &'static ThisModule) -> Result<Self> {
-        pr_info!("Hello world!\n");
+        //pr_info!("Hello world!\n");
         let dev = Ref::try_new(Device {
             number: 0,
             contents: Mutex::new(Vec::new()),
