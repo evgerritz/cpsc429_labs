@@ -32,7 +32,7 @@ impl kernel::Module for RustMymem {
 
         let mut buffer_p = &mut BUFFER.lock();
 
-        pr_info!("buffer len: {:?}", *buffer_p.len());
+        pr_info!("buffer len: {:?}", buffer_p.len());
         Ok(RustMymem)
     }
 }
