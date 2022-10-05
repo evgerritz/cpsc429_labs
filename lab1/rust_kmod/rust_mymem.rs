@@ -18,30 +18,23 @@ module! {
     license: "GPL",
 }
 
-struct RustMymem {
-    _dev: Pin<Box<miscdev::Registration<RustMymem>>>,
-}
 
 const BUFFER_SIZE: usize = 512*1024;
+static BUFFER = Mutex::new(RustMymem {
+    buffer: [0u8; BUFFER_SIZE]
+});
 
-struct Device {
-    //buffer: Mutex<Vec<u8>>,
-    buffer: Mutex<[u8; BUFFER_SIZE]>,
-    pos: Mutex<usize>
-}
+struct RustMymem {
+    buffer: [u8; BUFFER_SIZE]
+};
+
 
 impl kernel::Module for RustMymem {
     fn init(name: &'static CStr, _module: &'static ThisModule) -> Result<Self> {
         pr_info!("rust_mymem (init)\n");
 
-        let state = Ref::try_new( Device {
-            buffer: Mutex::new([0u8; BUFFER_SIZE]),
-            pos: Mutex::new(0)
-        })?;
-
-        Ok(RustMymem {                  // 438 == 0o666
-            _dev: miscdev::Options::new().mode(438).register_new(fmt!("{name}"), state)?,
-        })
+        pr_info!("buffer len: {:?}", buffer.lock().len());
+        Ok(RustMymem)
     }
 }
 
@@ -51,22 +44,10 @@ impl Drop for RustMymem {
     }
 }
 
-#[vtable]
-impl file::Operations for RustMymem {
-    type OpenData = Ref<Device>;
-    type Data = Ref<Device>;
-
-    fn open(shared: &Ref<Device>, _file: &File) -> Result<Self::Data> {
-        pr_info!("rust_mymem (open)\n");
-        Ok(shared.clone())
-    }
-
-    fn read( shared: RefBorrow<'_, Device>, _file: &File,
-        data: &mut impl IoBufferWriter, offset: u64 ) -> Result<usize> {
-        let buffer = shared.buffer.lock();
-        let mut offset_p = shared.pos.lock();
-
-        if data.is_empty() {
+impl RustMymem {
+    pub fn read( &mut self, outbuf: &mut [u8], offset: usize ) -> usize {
+        pr_info!("rust_mymem (read)");
+        /*if data.is_empty() {
             return Ok(0);
         }
 
@@ -82,14 +63,15 @@ impl file::Operations for RustMymem {
         // Write starting from offset
         data.write_slice(&buffer[*offset_p..][..num_bytes])?;
 
-        *offset_p += num_bytes;
+        *offset_p += num_bytes; */
 
-        Ok(num_bytes)
+        0
     }
 
-    fn write( shared: RefBorrow<'_, Device>, _: &File,
-        data: &mut impl IoBufferReader, offset: u64) -> Result<usize> {
-        if data.is_empty() {
+    pub fn write( &mut self, inbuf: &[u8], offset: usize ) -> usize {
+        pr_info!("rust_mymem (write)");
+        0
+        /*if data.is_empty() {
             return Ok(0);
         }
 
@@ -105,25 +87,7 @@ impl file::Operations for RustMymem {
 
         data.read_slice(&mut buffer[*offset_p..][..num_bytes])?;
         *offset_p += num_bytes;
-        Ok(num_bytes)
-    }
-
-    fn seek( shared: RefBorrow<'_, Device>, _file: &File,
-        offset: SeekFrom) -> Result<u64> {
-        let mut old_offset = shared.pos.lock();
-        let new_offset: usize;
-
-        match offset {
-            SeekFrom::Start(val) => new_offset = val as usize,
-            SeekFrom::End(val) => new_offset = BUFFER_SIZE + val as usize,
-            SeekFrom::Current(val) => new_offset = *old_offset + val as usize,
-        }
-        
-        if new_offset > BUFFER_SIZE {
-            return Err(EINVAL);
-        }
-
-        *old_offset = new_offset;
-        Ok(new_offset as u64)
+        Ok(num_bytes) */
     }
 }
+
