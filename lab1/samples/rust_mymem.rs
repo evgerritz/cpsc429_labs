@@ -23,7 +23,7 @@ struct RustMymem {
 }
 
 struct SharedState {
-    buffer: [u8; BUFFER_SIZE]
+    buffer: Box<[u8; BUFFER_SIZE]>
 }
 
 impl kernel::Module for RustMymem {
@@ -31,7 +31,7 @@ impl kernel::Module for RustMymem {
         pr_info!("rust_mymem (init)\n");
 
         let state = Ref::try_new(SharedState {
-            buffer: [0; BUFFER_SIZE],
+            buffer: Box::new([0; BUFFER_SIZE]),
         })?;
 
         Ok(RustMymem {                  // 438 == 0o666
