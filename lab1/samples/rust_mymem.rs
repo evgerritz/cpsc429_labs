@@ -94,7 +94,7 @@ impl file::Operations for RustMymem {
             return Ok(0);
         }
         let mut buffer = shared.buffer.lock();
-        let offset = shared.pos.lock();
+        let offset: usize = *shared.pos.lock();
 
         let num_bytes: usize = data.len();
 
@@ -119,7 +119,7 @@ impl file::Operations for RustMymem {
         match offset {
             SeekFrom::Start(val) => new_offset = val as usize,
             SeekFrom::End(val) => new_offset = BUFFER_SIZE + val as usize,
-            SeekFrom::Current(val) => new_offset = old_offset + val as usize,
+            SeekFrom::Current(val) => new_offset = *old_offset + val as usize,
         }
         *old_offset = new_offset;
         Ok(new_offset as u64)
