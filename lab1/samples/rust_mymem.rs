@@ -52,7 +52,6 @@ const BUFFER_SIZE: usize = 512*1024;
 impl file::Operations for RustMymem {
     type OpenData = Ref<SharedState>;
     type Data = Ref<SharedState>;
-    //kernel::declare_file_operations!(read, write);
 
     fn open(shared: &Ref<SharedState>, _file: &File) -> Result<Self::Data> {
         pr_info!("rust_mymem (open)\n");
@@ -77,7 +76,8 @@ impl file::Operations for RustMymem {
         let stop: usize = num_bytes + offset as usize;
         let mut buffer_slice: Vec<u8> = Vec::new();
         for i in start..stop {
-            buffer_slice.try_push(buffer[i])?;
+            buffer[i];
+            //buffer_slice.try_push(buffer[i])?;
         }
 
         //data.write_slice(&buffer_slice[..])?;
