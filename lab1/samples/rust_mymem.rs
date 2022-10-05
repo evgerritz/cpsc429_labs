@@ -72,6 +72,9 @@ impl file::Operations for RustMymem {
 
         let offset: usize = offset as usize;
         let num_bytes: usize = data.len();
+        if num_bytes + offset > BUFFER_SIZE {
+            return Err(EINVAL);
+        }
 
         // Write starting from offset
         data.write_slice(&buffer[offset..][..num_bytes])?;
@@ -85,8 +88,19 @@ impl file::Operations for RustMymem {
             return Ok(0);
         }
         let mut buffer = shared.buffer.lock();
+
         let num_bytes: usize = data.len();
         let offset: usize = offset as usize;
+
+        let new_len = num_bytes + offset;
+        if new_len > BUFFER_SIZE {
+            return Err(EINVAL);
+        }
+
+        if new_len > buffer.len() {
+            buffer.try_resize(new_len, 0)?;
+        }
+        
         data.read_slice(&mut buffer[offset..][..num_bytes])?;
         Ok(num_bytes)
     }
