@@ -63,7 +63,7 @@ impl file::Operations for RustMymem {
 
     fn read( shared: RefBorrow<'_, Device>, file: &File,
         data: &mut impl IoBufferWriter, offset: u64 ) -> Result<usize> {
-        pr_info!("rust_mymem (read)\n");
+        pr_info!("offset, read: {:?}", offset);
         let buffer = shared.buffer.lock();
 
         if data.is_empty() {
@@ -72,7 +72,12 @@ impl file::Operations for RustMymem {
 
         let offset: usize = offset as usize;
         //let num_bytes: usize = data.len();
-        let num_bytes: usize = core::cmp::min(data.len(), buffer.len().saturating_sub(offset));
+        let mut num_bytes: usize = data.len()
+        let max_bytes: usize = buffer.len() - offset;
+        if max_bytes < num_bytes {
+            num_bytes = max_bytes; 
+        }
+
         if num_bytes + offset > BUFFER_SIZE {
             return Err(EINVAL);
         }
@@ -84,6 +89,7 @@ impl file::Operations for RustMymem {
 
     fn write( shared: RefBorrow<'_, Device>, _: &File,
         data: &mut impl IoBufferReader, offset: u64) -> Result<usize> {
+        pr_info!("offset, write: {:?}", offset);
         if data.is_empty() {
             return Ok(0);
         }
