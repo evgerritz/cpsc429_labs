@@ -121,7 +121,7 @@ impl file::Operations for RustMymem {
             SeekFrom::End(val) => new_offset = BUFFER_SIZE + val,
             SeekFrom::Current(val) => new_offset = old_offset + val,
         }
-        old_offset = new_offset;
+        *old_offset = new_offset;
         Ok(new_offset)
     }
 }
