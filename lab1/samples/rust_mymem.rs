@@ -73,8 +73,8 @@ impl file::Operations for RustMymem {
         pr_alert!("num bytes: {:?}", num_bytes);
 
         // Write starting from offset
-        let start: usize = offset;
-        let stop: usize = num_bytes + offset;
+        let start: usize = offset as usize;
+        let stop: usize = num_bytes + offset as usize;
         pr_alert!("start, stop: {:?}, {:?}", start, stop);
         let buffer_slice = &buffer[start..stop];
         pr_alert!("slice: {:?}", buffer_slice);
