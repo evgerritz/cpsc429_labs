@@ -69,14 +69,14 @@ impl file::Operations for RustMymem {
         let buffer = shared.buffer;
 
         let num_bytes: usize = data.len();
-        pr_alert!("num bytes: {:?}", num_bytes);
+        pr_info!("num bytes: {:?}", num_bytes);
 
         // Write starting from offset
         let start: usize = offset as usize;
         let stop: usize = num_bytes + offset as usize;
         let mut buffer_slice: Vec<u8> = Vec::new();
         for i in start..stop {
-            buffer[i];
+            pr_info!!("buffer: {:?}", buffer[i]);
             //buffer_slice.try_push(buffer[i])?;
         }
 
