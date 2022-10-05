@@ -55,15 +55,12 @@ impl file::Operations for RustMymem {
     type OpenData = Ref<Device>;
     type Data = Ref<Device>;
 
-    fn open(shared: &Ref<Device>, file: &File) -> Result<Self::Data> {
+    fn open(shared: &Ref<Device>, _file: &File) -> Result<Self::Data> {
         pr_info!("rust_mymem (open)\n");
-        if file.flags() & file::flags::O_ACCMODE == file::flags::O_WRONLY {
-            shared.buffer.lock().clear();
-        }
         Ok(shared.clone())
     }
 
-    fn read( shared: RefBorrow<'_, Device>, file: &File,
+    fn read( shared: RefBorrow<'_, Device>, _file: &File,
         data: &mut impl IoBufferWriter, offset: u64 ) -> Result<usize> {
         pr_info!("offset, read: {:?}", offset);
         let buffer = shared.buffer.lock();
