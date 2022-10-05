@@ -56,7 +56,7 @@ impl file::Operations for RustMymem {
     fn open(shared: &Ref<Device>, file: &File) -> Result<Self::Data> {
         pr_info!("rust_mymem (open)\n");
         if file.flags() & file::flags::O_ACCMODE == file::flags::O_WRONLY {
-            context.contents.lock().clear();
+            shared.buffer.lock().clear();
         }
         Ok(shared.clone())
     }
