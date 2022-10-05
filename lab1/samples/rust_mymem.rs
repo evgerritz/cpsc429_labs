@@ -35,7 +35,7 @@ impl kernel::Module for RustMymem {
         })?;
 
         Ok(RustMymem {
-            _dev: miscdev::Registration::new_pinned(fmt!("{name}"), state)?,
+            _dev: miscdev::Options::new().mode(0666).register_new(fmt!("{name}"), state)?,
         })
     }
 }
