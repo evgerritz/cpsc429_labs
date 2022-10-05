@@ -80,8 +80,8 @@ impl file::Operations for RustMymem {
         pr_info!("rust_mymem (write)\n");
         let mut buffer = shared.buffer;
         let num_bytes: usize = data.len();
-        let mut to_write: [u8; BUFFER_SIZE];
-        data.read_slice(&mut to_write)?;
+        let mut to_write: Vec<u8>;
+        to_write = data.read_all()?;
         for i in (offset as usize)..(offset as usize + num_bytes) {
             buffer[i] = to_write[i]; 
         }
