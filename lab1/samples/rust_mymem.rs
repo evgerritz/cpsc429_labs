@@ -76,7 +76,7 @@ impl file::Operations for RustMymem {
         let stop: usize = num_bytes + offset as usize;
         let mut buffer_slice: Vec<u8> = Vec::new();
         for i in start..stop {
-            pr_info!!("buffer: {:?}", buffer[i]);
+            pr_info!("buffer: {:?}", buffer[i]);
             //buffer_slice.try_push(buffer[i])?;
         }
 
