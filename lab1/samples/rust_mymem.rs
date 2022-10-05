@@ -9,6 +9,7 @@ use kernel::{
     miscdev,
     sync::{Ref, RefBorrow,}//, CondVar, Mutex, UniqueRef},
 };
+use alloc::boxed;
 
 module! {
     type: RustMymem,
@@ -23,7 +24,7 @@ struct RustMymem {
 }
 
 struct SharedState {
-    buffer: Box<[u8; BUFFER_SIZE]>
+    buffer: Box<[u8; BUFFER_SIZE]>,
 }
 
 impl kernel::Module for RustMymem {
@@ -66,7 +67,7 @@ impl file::Operations for RustMymem {
             return Ok(0);
         }
 
-        let buffer = shared.buffer;
+        let buffer = *shared.buffer;
 
         let num_bytes: usize = data.len();
         pr_info!("num bytes: {:?}", num_bytes);
@@ -90,7 +91,7 @@ impl file::Operations for RustMymem {
         if data.is_empty() {
             return Ok(0);
         }
-        let mut buffer = shared.buffer;
+        let mut buffer = *shared.buffer;
         let num_bytes: usize = data.len();
         let to_write: Vec<u8>;
         to_write = data.read_all()?;
