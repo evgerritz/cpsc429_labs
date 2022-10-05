@@ -82,7 +82,7 @@ impl file::Operations for RustMymem {
         // Write starting from offset
         data.write_slice(&buffer[offset..][..num_bytes])?;
 
-        offset += num_bytes;
+        *offset += num_bytes;
 
         Ok(num_bytes)
     }
@@ -108,7 +108,7 @@ impl file::Operations for RustMymem {
         }
         
         data.read_slice(&mut buffer[offset..][..num_bytes])?;
-        offset += num_bytes;
+        *offset += num_bytes;
         Ok(num_bytes)
     }
 
@@ -122,6 +122,6 @@ impl file::Operations for RustMymem {
             SeekFrom::Current(val) => new_offset = old_offset + val as usize,
         }
         *old_offset = new_offset;
-        Ok(new_offset)
+        Ok(new_offset as u64)
     }
 }
