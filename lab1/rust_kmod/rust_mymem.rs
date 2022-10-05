@@ -20,7 +20,9 @@ module! {
 
 
 const BUFFER_SIZE: usize = 512*1024;
-static DEVICE: Mutex<RustMymem>;
+static DEVICE: Mutex<RustMymem> = Mutex::new( RustMymem {
+    buffer: [0u8; BUFFER_SIZE] 
+});
 
 struct RustMymem {
     buffer: [u8; BUFFER_SIZE]
