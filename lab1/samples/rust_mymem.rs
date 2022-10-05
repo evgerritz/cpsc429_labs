@@ -80,7 +80,7 @@ impl file::Operations for RustMymem {
             buffer_slice.try_push(buffer[i])?;
         }
 
-        data.write_slice(&buffer_slice[..])?;
+        //data.write_slice(&buffer_slice[..])?;
 
         Ok(data.len())
     }
