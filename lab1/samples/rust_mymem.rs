@@ -64,14 +64,14 @@ impl file::Operations for RustMymem {
         data: &mut impl IoBufferWriter, offset: u64 ) -> Result<usize> {
         pr_info!("offset, read: {:?}", offset);
         let buffer = shared.buffer.lock();
-        let offset_p: = shared.pos.lock();
+        let offset_p = shared.pos.lock();
 
         if data.is_empty() {
             return Ok(0);
         }
 
         let mut num_bytes: usize = data.len();
-        let max_bytes: usize = buffer.len() - offset;
+        let max_bytes: usize = buffer.len() - *offset_p;
         if max_bytes < num_bytes {
             num_bytes = max_bytes; 
         }
