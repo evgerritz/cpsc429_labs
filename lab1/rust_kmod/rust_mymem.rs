@@ -30,7 +30,7 @@ impl kernel::Module for RustMymem {
     fn init(name: &'static CStr, _module: &'static ThisModule) -> Result<Self> {
         pr_info!("rust_mymem (init)\n");
 
-        device = RustMymem {
+        let device = RustMymem {
             buffer: [0u8; BUFFER_SIZE]
         };
 
