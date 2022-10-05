@@ -32,7 +32,7 @@ impl kernel::Module for RustMymem {
         pr_info!("rust_mymem (init)\n");
 
         let state = Ref::try_new(SharedState {
-            buffer: Box::new([0; BUFFER_SIZE]),
+            buffer: Box::try_new([0; BUFFER_SIZE])?,
         })?;
 
         Ok(RustMymem {                  // 438 == 0o666
