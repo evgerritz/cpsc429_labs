@@ -21,7 +21,7 @@ module! {
 const BUFFER_SIZE: usize = 512*1024;
 
 
-struct RustMymem;
+pub struct RustMymem;
 
 static BUFFER: Mutex<[u8; BUFFER_SIZE]> = Mutex::new( [0u8; BUFFER_SIZE] );
 
