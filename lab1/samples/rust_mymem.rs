@@ -71,11 +71,11 @@ impl file::Operations for RustMymem {
         }
 
         let offset: usize = offset as usize;
-        let num_bytes: usize = data.len();
+        //let num_bytes: usize = data.len();
+        let num_bytes: usize = core::cmp::min(data.len(), buffer.len().saturating_sub(offset));
         if num_bytes + offset > BUFFER_SIZE {
             return Err(EINVAL);
         }
-
         // Write starting from offset
         data.write_slice(&buffer[offset..][..num_bytes])?;
 
