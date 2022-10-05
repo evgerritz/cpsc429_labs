@@ -103,10 +103,6 @@ impl file::Operations for RustMymem {
             return Err(EINVAL);
         }
 
-        /*if new_len > buffer.len() {
-            buffer.try_resize(new_len, 0)?;
-        }*/
-        
         data.read_slice(&mut buffer[*offset_p..][..num_bytes])?;
         *offset_p += num_bytes;
         Ok(num_bytes)
