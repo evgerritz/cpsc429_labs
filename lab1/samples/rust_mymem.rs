@@ -64,7 +64,7 @@ impl file::Operations for RustMymem {
         pr_info!("rust_mymem (read)\n");
         // Succeed if the caller doesn't provide a buffer 
         if data.is_empty() {
-            Ok(0)
+            return Ok(0);
         }
 
         let buffer = shared.buffer;
