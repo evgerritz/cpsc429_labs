@@ -75,11 +75,12 @@ impl file::Operations for RustMymem {
         // Write starting from offset
         let start: usize = offset as usize;
         let stop: usize = num_bytes + offset as usize;
-        pr_alert!("start, stop: {:?}, {:?}", start, stop);
-        //let buffer_slice = &buffer[start..stop];
-        //pr_alert!("slice: {:?}", buffer_slice);
+        let buffer_slice: Vec<u8> = Vec::new();
+        for i in start..stop {
+            buffer_slice.push(buffer[i]);
+        }
 
-        //data.write_slice(buffer_slice)?;
+        data.write_slice(&buffer_slice[..])?;
 
         Ok(data.len())
     }
