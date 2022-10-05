@@ -68,7 +68,7 @@ impl file::Operations for RustMymem {
             return Ok(0);
         }
 
-        let offset: usize = offset.try_into()? as usize;
+        let offset: usize = offset as usize;
         let num_bytes: usize = data.len();
 
         // Write starting from offset
@@ -84,6 +84,7 @@ impl file::Operations for RustMymem {
         }
         let mut buffer = shared.buffer.lock();
         let num_bytes: usize = data.len();
+        let offset: usize = offset as usize;
         data.read_slice(&mut buffer[offset..][..num_bytes])?;
         //let to_write: Vec<u8>;
         //to_write = data.read_all()?;
