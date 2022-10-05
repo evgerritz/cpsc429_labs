@@ -10,15 +10,29 @@ use kernel::{
     sync::{CondVar, Mutex, Ref, RefBorrow, UniqueRef},
 };
 
+module! {
+    type: RustMymem,
+    name: "rust_mymem",
+    author: "Evan Gerritz",
+    description: "mymem test module in Rust",
+    license: "GPL",
+}
+
 struct RustMymem {
-    _dev: Pin<Box<miscdev::Registration<Token>>>,
+    _dev: Pin<Box<miscdev::Registration<RustMymem>>>,
+}
+
+struct SharedState {
+    buffer: [u8; BUFFER_SIZE]
 }
 
 impl kernel::Module for RustMymem {
     fn init(name: &'static CStr, _module: &'static ThisModule) -> Result<Self> {
         pr_info!("rust_mymem (init)\n");
 
-        let state = SharedState::try_new()?;
+        let state = Ref::try_new(SharedState {
+            buffer: Arc::new(Mutex::new([0; BUFFER_SIZE])),
+        })?;
 
         Ok(RustMymem {
             _dev: miscdev::Registration::new_pinned(fmt!("{name}"), state)?,
@@ -28,115 +42,38 @@ impl kernel::Module for RustMymem {
 
 impl Drop for RustMymem {
     fn drop(&mut self) {
-        pr_info!("rust_mymem (init)\n");
+        pr_info!("rust_mymem (exit)\n");
     }
 }
 
-module! {
-    type: RustMymem,
-    name: "rust_mymem",
-    author: "Evan Gerritz",
-    description: "mymem test module in Rust",
-    license: "GPL",
-}
+const BUFFER_SIZE: usize = 512*1024;
 
-const MAX_TOKENS: usize = 3;
-
-struct SharedStateInner {
-    token_count: usize,
-}
-
-struct SharedState {
-    state_changed: CondVar,
-    inner: Mutex<SharedStateInner>,
-}
-
-impl SharedState {
-    fn try_new() -> Result<Ref<Self>> {
-        let mut state = Pin::from(UniqueRef::try_new(Self {
-            // SAFETY: `condvar_init!` is called below.
-            state_changed: unsafe { CondVar::new() },
-            // SAFETY: `mutex_init!` is called below.
-            inner: unsafe { Mutex::new(SharedStateInner { token_count: 0 }) },
-        })?);
-
-        // SAFETY: `state_changed` is pinned when `state` is.
-        let pinned = unsafe { state.as_mut().map_unchecked_mut(|s| &mut s.state_changed) };
-        kernel::condvar_init!(pinned, "SharedState::state_changed");
-
-        // SAFETY: `inner` is pinned when `state` is.
-        let pinned = unsafe { state.as_mut().map_unchecked_mut(|s| &mut s.inner) };
-        kernel::mutex_init!(pinned, "SharedState::inner");
-
-        Ok(state.into())
-    }
-}
-
-struct Token;
-#[vtable]
-impl file::Operations for Token {
-    type Data = Ref<SharedState>;
+//#[vtable]
+impl file::Operations for RustMymem {
     type OpenData = Ref<SharedState>;
-    
+    type Data = Ref<SharedState>;
+    kernel::declare_file_operations!(read, write);
+
     fn open(shared: &Ref<SharedState>, _file: &File) -> Result<Self::Data> {
         Ok(shared.clone())
     }
 
-    fn read(
-        shared: RefBorrow<'_, SharedState>,
-        _: &File,
-        data: &mut impl IoBufferWriter,
-        offset: u64,
-    ) -> Result<usize> {
-        // Succeed if the caller doesn't provide a buffer or if not at the start.
-        if data.is_empty() || offset != 0 {
+    fn read( shared: RefBorrow<'_, SharedState>, file: &File,
+        data: &mut impl IoBufferWriter, offset: u64 ) -> Result<usize> {
+        // Succeed if the caller doesn't provide a buffer 
+        if data.is_empty() {
             return Ok(0);
         }
 
-        {
-            let mut inner = shared.inner.lock();
-
-            // Wait until we are allowed to decrement the token count or a signal arrives.
-            while inner.token_count == 0 {
-                if shared.state_changed.wait(&mut inner) {
-                    return Err(EINTR);
-                }
-            }
-
-            // Consume a token.
-            inner.token_count -= 1;
-        }
-
-        // Notify a possible writer waiting.
-        shared.state_changed.notify_all();
+        let buffer = shared.buffer;
 
         // Write a one-byte 1 to the reader.
-        data.write_slice(&[1u8; 1])?;
+        data.write_slice(&buffer[offset..])?;
         Ok(1)
     }
 
-    fn write(
-        shared: RefBorrow<'_, SharedState>,
-        _: &File,
-        data: &mut impl IoBufferReader,
-        _offset: u64,
-    ) -> Result<usize> {
-        {
-            let mut inner = shared.inner.lock();
-
-            // Wait until we are allowed to increment the token count or a signal arrives.
-            while inner.token_count == MAX_TOKENS {
-                if shared.state_changed.wait(&mut inner) {
-                    return Err(EINTR);
-                }
-            }
-
-            // Increment the number of token so that a reader can be released.
-            inner.token_count += 1;
-        }
-
-        // Notify a possible reader waiting.
-        shared.state_changed.notify_all();
+    fn write( shared: RefBorrow<'_, SharedState>, _: &File,
+        data: &mut impl IoBufferReader, _offset: u64) -> Result<usize> {
         Ok(data.len())
     }
 }
