@@ -10,8 +10,8 @@ use kernel::{
 
 module! {
     type: Scull,
-    name: b"scull",
-    license: b"GPL",
+    name: "scull",
+    license: "GPL",
 }
 
 struct Device {
