@@ -24,7 +24,7 @@ struct RustMymem {
     buffer: [u8; BUFFER_SIZE]
 }
 
-static INNER_DEVICE = RustMymem {
+static INNER_DEVICE: RustMymem = RustMymem {
     buffer: [0u8; BUFFER_SIZE] 
 };
 
