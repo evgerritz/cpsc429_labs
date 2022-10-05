@@ -72,7 +72,7 @@ impl file::Operations for RustMymem {
 
         let offset: usize = offset as usize;
         //let num_bytes: usize = data.len();
-        let mut num_bytes: usize = data.len()
+        let mut num_bytes: usize = data.len();
         let max_bytes: usize = buffer.len() - offset;
         if max_bytes < num_bytes {
             num_bytes = max_bytes; 
