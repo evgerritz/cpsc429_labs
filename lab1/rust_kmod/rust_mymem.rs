@@ -26,11 +26,11 @@ static BUFFER: Mutex<RustMymem> = Mutex::new(RustMymem {
 
 struct RustMymem {
     buffer: [u8; BUFFER_SIZE]
-};
+}
 
 
 impl kernel::Module for RustMymem {
-    fn init(name: &'static CStr, _module: &'static ThisModule) -> Result<&Self> {
+    fn init(name: &'static CStr, _module: &'static ThisModule) -> Result<&'static Self> {
         pr_info!("rust_mymem (init)\n");
 
         pr_info!("buffer len: {:?}", (*BUFFER.lock()).buffer.len());
