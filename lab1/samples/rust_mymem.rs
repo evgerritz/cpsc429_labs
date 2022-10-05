@@ -7,7 +7,8 @@ use kernel::{
     file::{self, File, SeekFrom},
     io_buffer::{IoBufferReader, IoBufferWriter},
     miscdev,
-    sync::{Ref, RefBorrow, Mutex, Arc}//, CondVar, Mutex, UniqueRef},
+    sync::{Ref, RefBorrow, Mutex},
+    arc::Arc,
 };
 
 module! {
