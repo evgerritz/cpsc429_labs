@@ -4,7 +4,7 @@
 
 use kernel::prelude::*;
 use kernel::{
-    file::{self, File},
+    file::{self, File, SeekFrom},
     io_buffer::{IoBufferReader, IoBufferWriter},
     miscdev,
     sync::{Ref, RefBorrow,}//, CondVar, Mutex, UniqueRef},
@@ -81,8 +81,8 @@ impl file::Operations for RustMymem {
         Ok(data.len())
     }
 
-    fn seek( data: <Self::Data as PointerWrapper>::Borrowed<'_>,
-        _file: &File, _offset: SeekFrom) -> Result<u64> {
+    fn seek( shared: RefBorrow<'_, SharedState>, _file: &File,
+        _offset: SeekFrom) -> Result<u64> {
         pr_info!("rust_mymem (seek)\n");
         Ok(0)
     }
