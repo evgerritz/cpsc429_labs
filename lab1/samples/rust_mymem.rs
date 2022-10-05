@@ -25,7 +25,7 @@ struct RustMymem {
 const BUFFER_SIZE: usize = 512*1024;
 
 struct Device {
-    buffer: Mutex<[u8; BUFFER_SIZE]>
+    buffer: Mutex<Vec<u8>>
 }
 
 impl kernel::Module for RustMymem {
@@ -33,7 +33,7 @@ impl kernel::Module for RustMymem {
         pr_info!("rust_mymem (init)\n");
 
         let state = Ref::try_new( Device {
-            buffer: Mutex::new([0u8; BUFFER_SIZE]),
+            buffer: Mutex::new(Vec::new())
         } )?;
 
         Ok(RustMymem {                  // 438 == 0o666
@@ -47,7 +47,6 @@ impl Drop for RustMymem {
         pr_info!("rust_mymem (exit)\n");
     }
 }
-
 
 #[vtable]
 impl file::Operations for RustMymem {
