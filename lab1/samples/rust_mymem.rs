@@ -26,6 +26,7 @@ const BUFFER_SIZE: usize = 512*1024;
 
 struct Device {
     buffer: Mutex<Vec<u8>>,
+    pos: Mutex<usize>
 }
 
 impl kernel::Module for RustMymem {
@@ -33,7 +34,8 @@ impl kernel::Module for RustMymem {
         pr_info!("rust_mymem (init)\n");
 
         let state = Ref::try_new( Device {
-            buffer: Mutex::new(Vec::new())
+            buffer: Mutex::new(Vec::new()),
+            pos: Mutex::new(0)
         })?;
 
         Ok(RustMymem {                  // 438 == 0o666
@@ -65,13 +67,12 @@ impl file::Operations for RustMymem {
         data: &mut impl IoBufferWriter, offset: u64 ) -> Result<usize> {
         pr_info!("offset, read: {:?}", offset);
         let buffer = shared.buffer.lock();
+        let offset = shared.pos.lock();
 
         if data.is_empty() {
             return Ok(0);
         }
 
-        let offset: usize = offset as usize;
-        //let num_bytes: usize = data.len();
         let mut num_bytes: usize = data.len();
         let max_bytes: usize = buffer.len() - offset;
         if max_bytes < num_bytes {
@@ -84,6 +85,8 @@ impl file::Operations for RustMymem {
         // Write starting from offset
         data.write_slice(&buffer[offset..][..num_bytes])?;
 
+        offset += num_bytes;
+
         Ok(num_bytes)
     }
 
@@ -94,9 +97,9 @@ impl file::Operations for RustMymem {
             return Ok(0);
         }
         let mut buffer = shared.buffer.lock();
+        let offset = shared.pos.lock();
 
         let num_bytes: usize = data.len();
-        let offset: usize = offset as usize;
 
         let new_len = num_bytes + offset;
         if new_len > BUFFER_SIZE {
@@ -108,12 +111,20 @@ impl file::Operations for RustMymem {
         }
         
         data.read_slice(&mut buffer[offset..][..num_bytes])?;
+        offset += num_bytes;
         Ok(num_bytes)
     }
 
     fn seek( shared: RefBorrow<'_, Device>, _file: &File,
-        _offset: SeekFrom) -> Result<u64> {
-        pr_info!("rust_mymem (seek)\n");
-        Ok(0)
+        offset: SeekFrom) -> Result<u64> {
+        let old_offset = shared.pos.lock();
+        let mut new_offset;
+        match offset {
+            SeekFrom::Start(val) => new_offset = val,
+            SeekFrom::End(val) => new_offset = BUFFER_SIZE + val,
+            SeekFrom::Current(val) => new_offset = old_offset + val,
+        }
+        old_offset = new_offset;
+        Ok(new_offset)
     }
 }
