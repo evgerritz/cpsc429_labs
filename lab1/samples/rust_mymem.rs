@@ -79,7 +79,7 @@ impl file::Operations for RustMymem {
         data: &mut impl IoBufferReader, offset: u64) -> Result<usize> {
         pr_info!("rust_mymem (write)\n");
         let mut buffer = shared.buffer;
-        let num_bytes = data.len();
+        let num_bytes: usize = data.len();
         let mut to_write: [u8; BUFFER_SIZE];
         data.read_slice(&mut to_write)?;
         for i in (offset as usize)..(offset+num_bytes) as usize {
