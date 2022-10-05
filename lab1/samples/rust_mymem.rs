@@ -34,7 +34,7 @@ impl kernel::Module for RustMymem {
 
         let state = Ref::try_new( Device {
             buffer: Mutex::new(Vec::new())
-        } )?;
+        })?;
 
         Ok(RustMymem {                  // 438 == 0o666
             _dev: miscdev::Options::new().mode(438).register_new(fmt!("{name}"), state)?,
