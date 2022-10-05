@@ -31,7 +31,7 @@ impl kernel::Module for RustMymem {
         pr_info!("rust_mymem (init)\n");
 
         let state = Ref::try_new(SharedState {
-            buffer: Arc::new(Mutex::new([0; BUFFER_SIZE])),
+            buffer: [0; BUFFER_SIZE],
         })?;
 
         Ok(RustMymem {
@@ -48,11 +48,11 @@ impl Drop for RustMymem {
 
 const BUFFER_SIZE: usize = 512*1024;
 
-//#[vtable]
+#[vtable]
 impl file::Operations for RustMymem {
     type OpenData = Ref<SharedState>;
     type Data = Ref<SharedState>;
-    kernel::declare_file_operations!(read, write);
+    //kernel::declare_file_operations!(read, write);
 
     fn open(shared: &Ref<SharedState>, _file: &File) -> Result<Self::Data> {
         Ok(shared.clone())
@@ -68,7 +68,7 @@ impl file::Operations for RustMymem {
         let buffer = shared.buffer;
 
         // Write a one-byte 1 to the reader.
-        data.write_slice(&buffer[offset..])?;
+        data.write_slice(&buffer[(offset as usize)..])?;
         Ok(1)
     }
 
