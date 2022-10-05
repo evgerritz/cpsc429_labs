@@ -1,4 +1,6 @@
-//! Scull module in Rust.
+// SPDX-License-Identifier: GPL-2.0
+
+//! Rust miscellaneous device sample.
 
 use kernel::prelude::*;
 use kernel::{
@@ -9,74 +11,90 @@ use kernel::{
 };
 
 module! {
-    type: Scull,
-    name: "scull",
+    type: RustMymem,
+    name: "rust_mymem",
+    author: "Evan Gerritz",
+    description: "mymem test module in Rust",
     license: "GPL",
 }
 
-struct Device {
-    number: usize,
-    contents: Mutex<Vec<u8>>,
+struct RustMymem {
+    _dev: Pin<Box<miscdev::Registration<RustMymem>>>,
 }
 
-struct Scull {
-    _dev: Pin<Box<miscdev::Registration<Scull>>>,
+const BUFFER_SIZE: usize = 512*1024;
+
+struct Device {
+    buffer: Mutex<Vec<u8>>,
+}
+
+impl kernel::Module for RustMymem {
+    fn init(name: &'static CStr, _module: &'static ThisModule) -> Result<Self> {
+        pr_info!("rust_mymem (init)\n");
+
+        let state = Ref::try_new( Device {
+            buffer: Mutex::new(Vec::new())
+        } )?;
+
+        Ok(RustMymem {                  // 438 == 0o666
+            _dev: miscdev::Options::new().mode(438).register_new(fmt!("{name}"), state)?,
+        })
+    }
+}
+
+impl Drop for RustMymem {
+    fn drop(&mut self) {
+        pr_info!("rust_mymem (exit)\n");
+    }
 }
 
 #[vtable]
-impl file::Operations for Scull {
+impl file::Operations for RustMymem {
     type OpenData = Ref<Device>;
     type Data = Ref<Device>;
 
-    fn open(context: &Ref<Device>, file: &file::File) -> Result<Ref<Device>> {
-        //pr_info!("File for device {} was opened\n", context.number);
+    fn open(shared: &Ref<Device>, file: &File) -> Result<Self::Data> {
+        pr_info!("rust_mymem (open)\n");
         if file.flags() & file::flags::O_ACCMODE == file::flags::O_WRONLY {
             context.contents.lock().clear();
         }
-        Ok(context.clone())
+        Ok(shared.clone())
     }
 
-    fn read(
-        data: RefBorrow<'_, Device>,
-        _file: &file::File,
-        writer: &mut impl IoBufferWriter,
-        offset: u64,
-    ) -> Result<usize> {
-        //pr_info!("File for device {} was read\n", data.number);
-        let offset = offset.try_into()?;
-        let vec = data.contents.lock();
-        let len = core::cmp::min(writer.len(), vec.len().saturating_sub(offset));
-        writer.write_slice(&vec[offset..][..len])?;
-        Ok(len)
-    }
+    fn read( shared: RefBorrow<'_, Device>, file: &File,
+        data: &mut impl IoBufferWriter, offset: u64 ) -> Result<usize> {
+        pr_info!("rust_mymem (read)\n");
+        let buffer = shared.buffer.lock();
+        let len = writer.len(); 
 
-    fn write(
-        data: RefBorrow<'_, Device>,
-        _file: &file::File,
-        reader: &mut impl IoBufferReader,
-        offset: u64,
-    ) -> Result<usize> {
-        //pr_info!("File for device {} was written\n", data.number);
-        let offset = offset.try_into()?;
-        let len = reader.len();
-        let new_len = len.checked_add(offset).ok_or(EINVAL)?;
-        let mut vec = data.contents.lock();
-        if new_len > vec.len() {
-            vec.try_resize(new_len, 0)?;
+        if data.is_empty() {
+            return Ok(0);
         }
-        reader.read_slice(&mut vec[offset..][..len])?;
-        Ok(len)
-    }
-}
 
-impl kernel::Module for Scull {
-    fn init(_name: &'static CStr, _module: &'static ThisModule) -> Result<Self> {
-        //pr_info!("Hello world!\n");
-        let dev = Ref::try_new(Device {
-            number: 0,
-            contents: Mutex::new(Vec::new()),
-        })?;
-        let reg = miscdev::Registration::new_pinned(fmt!("scull"), dev)?;
-        Ok(Self { _dev: reg })
+        let offset: usize = offset as usize;
+        let num_bytes: usize = data.len();
+
+        // Write starting from offset
+        data.write_slice(&buffer[offset..][..num_bytes])?;
+
+        Ok(num_bytes)
+    }
+
+    fn write( shared: RefBorrow<'_, Device>, _: &File,
+        data: &mut impl IoBufferReader, offset: u64) -> Result<usize> {
+        if data.is_empty() {
+            return Ok(0);
+        }
+        let mut buffer = shared.buffer.lock();
+        let num_bytes: usize = data.len();
+        let offset: usize = offset as usize;
+        data.read_slice(&mut buffer[offset..][..num_bytes])?;
+        Ok(num_bytes)
+    }
+
+    fn seek( shared: RefBorrow<'_, Device>, _file: &File,
+        _offset: SeekFrom) -> Result<u64> {
+        pr_info!("rust_mymem (seek)\n");
+        Ok(0)
     }
 }
