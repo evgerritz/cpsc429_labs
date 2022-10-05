@@ -73,7 +73,7 @@ impl file::Operations for RustMymem {
         pr_alert!("num bytes: {:?}", num_bytes);
 
         // Write starting from offset
-        buffer_slice = &buffer[(offset as usize)..(num_bytes + offset as usize)];
+        let buffer_slice = &buffer[(offset as usize)..(num_bytes + offset as usize)];
         pr_alert!("slice: {:?}", buffer_slice);
 
         //data.write_slice(buffer_slice)?;
