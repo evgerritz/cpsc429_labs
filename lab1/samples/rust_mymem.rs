@@ -64,7 +64,7 @@ impl file::Operations for RustMymem {
         data: &mut impl IoBufferWriter, offset: u64 ) -> Result<usize> {
         pr_info!("offset, read: {:?}", offset);
         let buffer = shared.buffer.lock();
-        let offset_p = shared.pos.lock();
+        let mut offset_p = shared.pos.lock();
 
         if data.is_empty() {
             return Ok(0);
@@ -94,7 +94,7 @@ impl file::Operations for RustMymem {
             return Ok(0);
         }
         let mut buffer = shared.buffer.lock();
-        let offset_p = shared.pos.lock();
+        let mut offset_p = shared.pos.lock();
 
         let num_bytes: usize = data.len();
 
