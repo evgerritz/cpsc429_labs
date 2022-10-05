@@ -20,23 +20,20 @@ module! {
 
 const BUFFER_SIZE: usize = 512*1024;
 
-struct RustMymem {
-    buffer: [u8; BUFFER_SIZE]
-}
 
-static INNER_DEVICE: RustMymem = RustMymem {
-    buffer: [0u8; BUFFER_SIZE] 
-};
+struct RustMymem;
 
-static DEVICE: Mutex<RustMymem> = Mutex::new( INNER_DEVICE );
+static BUFFER: Mutex<[u8; BUFFER_SIZE]> = Mutex::new( [0u8; BUFFER_SIZE] );
 
 
 impl kernel::Module for RustMymem {
     fn init(name: &'static CStr, _module: &'static ThisModule) -> Result<Self> {
         pr_info!("rust_mymem (init)\n");
 
-        pr_info!("buffer len: {:?}", INNER_DEVICE.buffer.len());
-        Ok(INNER_DEVICE)
+        let mut buffer_p = &mut BUFFER.lock();
+
+        pr_info!("buffer len: {:?}", *buffer_p.len());
+        Ok(RustMymem)
     }
 }
 
