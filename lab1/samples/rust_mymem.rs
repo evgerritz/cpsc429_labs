@@ -1,6 +1,5 @@
 //! Scull module in Rust.
 
-use kernel::{file, miscdev};
 use kernel::prelude::*;
 use kernel::{
     file::{self, File, SeekFrom},
