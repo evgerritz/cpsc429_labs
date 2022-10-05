@@ -7,7 +7,7 @@ use kernel::{
     file::{self, File, SeekFrom},
     io_buffer::{IoBufferReader, IoBufferWriter},
     miscdev,
-    sync::{Ref, RefBorrow, Mutex},
+    sync::{smutex::Mutex, Ref, RefBorrow},
     arc::Arc,
 };
 
@@ -25,17 +25,17 @@ struct RustMymem {
 
 const BUFFER_SIZE: usize = 512*1024;
 
-struct SharedState {
-    buffer: Arc<Mutex<[u8; BUFFER_SIZE]>>,
+struct Device {
+    buffer: Mutex<[u8; BUFFER_SIZE]>
 }
 
 impl kernel::Module for RustMymem {
     fn init(name: &'static CStr, _module: &'static ThisModule) -> Result<Self> {
         pr_info!("rust_mymem (init)\n");
 
-        let state = Ref::try_new(SharedState {
-            buffer: Arc::new(Mutex::new([0u8; BUFFER_SIZE])),
-        })?;
+        let state = Ref::try_new( Device {
+            buffer: Mutex::new([0u8; BUFFER_SIZE]),
+        } )?;
 
         Ok(RustMymem {                  // 438 == 0o666
             _dev: miscdev::Options::new().mode(438).register_new(fmt!("{name}"), state)?,
@@ -52,56 +52,49 @@ impl Drop for RustMymem {
 
 #[vtable]
 impl file::Operations for RustMymem {
-    type OpenData = Ref<SharedState>;
-    type Data = Ref<SharedState>;
+    type OpenData = Ref<Device>;
+    type Data = Ref<Device>;
 
-    fn open(shared: &Ref<SharedState>, _file: &File) -> Result<Self::Data> {
+    fn open(shared: &Ref<Device>, _file: &File) -> Result<Self::Data> {
         pr_info!("rust_mymem (open)\n");
-        Ok(shared.clone())
+        Ok(*shared.clone())
     }
 
-    fn read( shared: RefBorrow<'_, SharedState>, file: &File,
+    fn read( shared: RefBorrow<'_, Device>, file: &File,
         data: &mut impl IoBufferWriter, offset: u64 ) -> Result<usize> {
-        let buffer = shared.buffer.lock().unwrap();
         pr_info!("rust_mymem (read)\n");
-        // Succeed if the caller doesn't provide a buffer 
+        let buffer = shared.buffer.lock();
+
         if data.is_empty() {
             return Ok(0);
         }
 
+        let offset = offset.try_into()?;
         let num_bytes: usize = data.len();
-        pr_info!("num bytes: {:?}", num_bytes);
 
         // Write starting from offset
-        let start: usize = offset as usize;
-        let stop: usize = num_bytes + offset as usize;
-        let mut buffer_slice: Vec<u8> = Vec::new();
-        for i in start..stop {
-            pr_info!("buffer: {:?}", buffer[i]);
-            //buffer_slice.try_push(buffer[i])?;
-        }
+        data.write_slice(&buffer[offset..][..num_bytes])?;
 
-        //data.write_slice(&buffer_slice[..])?;
-
-        Ok(data.len())
+        Ok(num_bytes)
     }
 
-    fn write( shared: RefBorrow<'_, SharedState>, _: &File,
+    fn write( shared: RefBorrow<'_, Device>, _: &File,
         data: &mut impl IoBufferReader, offset: u64) -> Result<usize> {
         if data.is_empty() {
             return Ok(0);
         }
         let mut buffer = shared.buffer.lock().unwrap();
         let num_bytes: usize = data.len();
-        let to_write: Vec<u8>;
-        to_write = data.read_all()?;
-        for i in (offset as usize)..(offset as usize + num_bytes) {
-            buffer.push() = to_write[i]; 
-        }
-        Ok(data.len())
+        data.read_slice(&mut buffer[offset..][..len])?;
+        //let to_write: Vec<u8>;
+        //to_write = data.read_all()?;
+        //for i in (offset as usize)..(offset as usize + num_bytes) {
+        //    buffer.push() = to_write[i]; 
+        //}
+        Ok(num_bytes)
     }
 
-    fn seek( shared: RefBorrow<'_, SharedState>, _file: &File,
+    fn seek( shared: RefBorrow<'_, Device>, _file: &File,
         _offset: SeekFrom) -> Result<u64> {
         pr_info!("rust_mymem (seek)\n");
         Ok(0)
