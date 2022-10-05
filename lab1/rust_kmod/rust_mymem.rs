@@ -18,28 +18,25 @@ module! {
     license: "GPL",
 }
 
-
 const BUFFER_SIZE: usize = 512*1024;
-static DEVICE: Mutex<RustMymem> = Mutex::new( RustMymem {
-    buffer: [0u8; BUFFER_SIZE] 
-});
 
 struct RustMymem {
     buffer: [u8; BUFFER_SIZE]
 }
 
+static INNER_DEVICE = RustMymem {
+    buffer: [0u8; BUFFER_SIZE] 
+};
+
+static DEVICE: Mutex<RustMymem> = Mutex::new( INNER_DEVICE );
+
+
 impl kernel::Module for RustMymem {
     fn init(name: &'static CStr, _module: &'static ThisModule) -> Result<Self> {
         pr_info!("rust_mymem (init)\n");
 
-        let device = RustMymem {
-            buffer: [0u8; BUFFER_SIZE]
-        };
-
-        DEVICE = Mutex::new(device);
-
-        pr_info!("buffer len: {:?}", device.buffer.len());
-        Ok(device)
+        pr_info!("buffer len: {:?}", INNER_DEVICE.buffer.len());
+        Ok(INNER_DEVICE)
     }
 }
 
