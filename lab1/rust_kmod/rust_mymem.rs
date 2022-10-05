@@ -5,7 +5,7 @@
 use kernel::prelude::*;
 use kernel::{
     file::{self, File, SeekFrom},
-    io_buffer::{IoBufferReader, IoBufferWriter},
+    //io_buffer::{IoBufferReader, IoBufferWriter},
     miscdev,
     sync::{smutex::Mutex, Ref, RefBorrow},
 };
@@ -30,11 +30,11 @@ struct RustMymem {
 
 
 impl kernel::Module for RustMymem {
-    fn init(name: &'static CStr, _module: &'static ThisModule) -> Result<()> {
+    fn init(name: &'static CStr, _module: &'static ThisModule) -> Result<&Self> {
         pr_info!("rust_mymem (init)\n");
 
-        pr_info!("buffer len: {:?}", BUFFER.lock().buffer.len());
-        Ok()
+        pr_info!("buffer len: {:?}", (*BUFFER.lock()).buffer.len());
+        Ok(*BUFFER.lock())
     }
 }
 
