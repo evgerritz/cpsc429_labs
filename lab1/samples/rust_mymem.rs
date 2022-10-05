@@ -56,7 +56,7 @@ impl file::Operations for RustMymem {
 
     fn open(shared: &Ref<Device>, _file: &File) -> Result<Self::Data> {
         pr_info!("rust_mymem (open)\n");
-        Ok(*shared.clone())
+        Ok(shared.clone())
     }
 
     fn read( shared: RefBorrow<'_, Device>, file: &File,
@@ -68,7 +68,7 @@ impl file::Operations for RustMymem {
             return Ok(0);
         }
 
-        let offset = offset.try_into()?;
+        let offset: usize = offset.try_into()? as usize;
         let num_bytes: usize = data.len();
 
         // Write starting from offset
