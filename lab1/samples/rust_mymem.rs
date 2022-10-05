@@ -34,8 +34,8 @@ impl kernel::Module for RustMymem {
             buffer: [0; BUFFER_SIZE],
         })?;
 
-        Ok(RustMymem {
-            _dev: miscdev::Options::new().mode(0666).register_new(fmt!("{name}"), state)?,
+        Ok(RustMymem {                  // 438 == 0o666
+            _dev: miscdev::Options::new().mode(438).register_new(fmt!("{name}"), state)?,
         })
     }
 }
