@@ -64,7 +64,7 @@ impl file::Operations for RustMymem {
         pr_info!("rust_mymem (read)\n");
         // Succeed if the caller doesn't provide a buffer 
         if data.is_empty() {
-            return Ok(0);
+            Ok(0)
         }
 
         let buffer = shared.buffer;
@@ -73,7 +73,10 @@ impl file::Operations for RustMymem {
         pr_alert!("num bytes: {:?}", num_bytes);
 
         // Write starting from offset
-        let buffer_slice = &buffer[(offset as usize)..(num_bytes + offset as usize)];
+        let start: usize = offset;
+        let stop: usize = num_bytes + offset;
+        pr_alert!("start, stop: {:?}, {:?}", start, stop);
+        let buffer_slice = &buffer[start..stop];
         pr_alert!("slice: {:?}", buffer_slice);
 
         //data.write_slice(buffer_slice)?;
@@ -83,7 +86,9 @@ impl file::Operations for RustMymem {
 
     fn write( shared: RefBorrow<'_, SharedState>, _: &File,
         data: &mut impl IoBufferReader, offset: u64) -> Result<usize> {
-        pr_info!("rust_mymem (write)\n");
+        if data.is_empty() {
+            return Ok(0);
+        }
         let mut buffer = shared.buffer;
         let num_bytes: usize = data.len();
         let to_write: Vec<u8>;
