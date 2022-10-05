@@ -8,7 +8,6 @@ use kernel::{
     io_buffer::{IoBufferReader, IoBufferWriter},
     miscdev,
     sync::{smutex::Mutex, Ref, RefBorrow},
-    arc::Arc,
 };
 
 module! {
@@ -83,9 +82,9 @@ impl file::Operations for RustMymem {
         if data.is_empty() {
             return Ok(0);
         }
-        let mut buffer = shared.buffer.lock().unwrap();
+        let mut buffer = shared.buffer.lock();
         let num_bytes: usize = data.len();
-        data.read_slice(&mut buffer[offset..][..len])?;
+        data.read_slice(&mut buffer[offset..][..num_bytes])?;
         //let to_write: Vec<u8>;
         //to_write = data.read_all()?;
         //for i in (offset as usize)..(offset as usize + num_bytes) {
