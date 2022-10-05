@@ -69,8 +69,11 @@ impl file::Operations for RustMymem {
 
         let buffer = shared.buffer;
 
+        let num_bytes: usize = data.len();
+        pr_alert!("num bytes: {:?}", num_bytes);
+
         // Write starting from offset
-        data.write_slice(&buffer[(offset as usize)..])?;
+        data.write_slice(&buffer[(offset as usize)..(num_bytes + offset as usize)])?;
 
         Ok(data.len())
     }
@@ -80,7 +83,7 @@ impl file::Operations for RustMymem {
         pr_info!("rust_mymem (write)\n");
         let mut buffer = shared.buffer;
         let num_bytes: usize = data.len();
-        let mut to_write: Vec<u8>;
+        let to_write: Vec<u8>;
         to_write = data.read_all()?;
         for i in (offset as usize)..(offset as usize + num_bytes) {
             buffer[i] = to_write[i]; 
