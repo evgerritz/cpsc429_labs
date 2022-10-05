@@ -115,11 +115,11 @@ impl file::Operations for RustMymem {
     fn seek( shared: RefBorrow<'_, Device>, _file: &File,
         offset: SeekFrom) -> Result<u64> {
         let old_offset = shared.pos.lock();
-        let mut new_offset;
+        let mut new_offset: usize;
         match offset {
-            SeekFrom::Start(val) => new_offset = val,
-            SeekFrom::End(val) => new_offset = BUFFER_SIZE + val,
-            SeekFrom::Current(val) => new_offset = old_offset + val,
+            SeekFrom::Start(val) => new_offset = val as usize,
+            SeekFrom::End(val) => new_offset = BUFFER_SIZE + val as usize,
+            SeekFrom::Current(val) => new_offset = old_offset + val as usize,
         }
         *old_offset = new_offset;
         Ok(new_offset)
