@@ -7,9 +7,8 @@ use kernel::{
     file::{self, File, SeekFrom},
     io_buffer::{IoBufferReader, IoBufferWriter},
     miscdev,
-    sync::{Ref, RefBorrow,}//, CondVar, Mutex, UniqueRef},
+    sync::{Ref, RefBorrow, Mutex, Arc}//, CondVar, Mutex, UniqueRef},
 };
-use alloc::boxed::Box;
 
 module! {
     type: RustMymem,
@@ -23,8 +22,10 @@ struct RustMymem {
     _dev: Pin<Box<miscdev::Registration<RustMymem>>>,
 }
 
+const BUFFER_SIZE: usize = 512*1024;
+
 struct SharedState {
-    buffer: Box<[u8; BUFFER_SIZE]>,
+    buffer: Arc<Mutex<[u8; BUFFER_SIZE]>>,
 }
 
 impl kernel::Module for RustMymem {
@@ -32,7 +33,7 @@ impl kernel::Module for RustMymem {
         pr_info!("rust_mymem (init)\n");
 
         let state = Ref::try_new(SharedState {
-            buffer: Box::try_new([0; BUFFER_SIZE])?,
+            buffer: Arc::new(Mutex::new([0u8; BUFFER_SIZE])),
         })?;
 
         Ok(RustMymem {                  // 438 == 0o666
@@ -47,7 +48,6 @@ impl Drop for RustMymem {
     }
 }
 
-const BUFFER_SIZE: usize = 512*1024;
 
 #[vtable]
 impl file::Operations for RustMymem {
@@ -61,13 +61,12 @@ impl file::Operations for RustMymem {
 
     fn read( shared: RefBorrow<'_, SharedState>, file: &File,
         data: &mut impl IoBufferWriter, offset: u64 ) -> Result<usize> {
+        let buffer = shared.buffer.lock().unwrap();
         pr_info!("rust_mymem (read)\n");
         // Succeed if the caller doesn't provide a buffer 
         if data.is_empty() {
             return Ok(0);
         }
-
-        let buffer = *shared.buffer;
 
         let num_bytes: usize = data.len();
         pr_info!("num bytes: {:?}", num_bytes);
@@ -91,12 +90,12 @@ impl file::Operations for RustMymem {
         if data.is_empty() {
             return Ok(0);
         }
-        let mut buffer = *shared.buffer;
+        let mut buffer = shared.buffer.lock().unwrap();
         let num_bytes: usize = data.len();
         let to_write: Vec<u8>;
         to_write = data.read_all()?;
         for i in (offset as usize)..(offset as usize + num_bytes) {
-            buffer[i] = to_write[i]; 
+            buffer.push() = to_write[i]; 
         }
         Ok(data.len())
     }
