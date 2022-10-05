@@ -9,7 +9,7 @@ use kernel::{
     miscdev,
     sync::{Ref, RefBorrow,}//, CondVar, Mutex, UniqueRef},
 };
-use alloc::boxed;
+use alloc::boxed::Box;
 
 module! {
     type: RustMymem,
