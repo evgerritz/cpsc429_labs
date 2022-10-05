@@ -7,7 +7,7 @@ use kernel::{
     file::{self, File},
     io_buffer::{IoBufferReader, IoBufferWriter},
     miscdev,
-    sync::{CondVar, Mutex, Ref, RefBorrow, UniqueRef},
+    sync::{Ref, RefBorrow,}//, CondVar, Mutex, UniqueRef},
 };
 
 module! {
@@ -55,11 +55,13 @@ impl file::Operations for RustMymem {
     //kernel::declare_file_operations!(read, write);
 
     fn open(shared: &Ref<SharedState>, _file: &File) -> Result<Self::Data> {
+        pr_info!("rust_mymem (open)\n");
         Ok(shared.clone())
     }
 
     fn read( shared: RefBorrow<'_, SharedState>, file: &File,
         data: &mut impl IoBufferWriter, offset: u64 ) -> Result<usize> {
+        pr_info!("rust_mymem (read)\n");
         // Succeed if the caller doesn't provide a buffer 
         if data.is_empty() {
             return Ok(0);
@@ -74,6 +76,14 @@ impl file::Operations for RustMymem {
 
     fn write( shared: RefBorrow<'_, SharedState>, _: &File,
         data: &mut impl IoBufferReader, _offset: u64) -> Result<usize> {
+        pr_info!("rust_mymem (write)\n");
+
         Ok(data.len())
+    }
+
+    fn seek( data: <Self::Data as PointerWrapper>::Borrowed<'_>,
+        _file: &File, _offset: SeekFrom) -> Result<u64> {
+        pr_info!("rust_mymem (seek)\n");
+        Ok(0)
     }
 }
