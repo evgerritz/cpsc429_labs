@@ -149,7 +149,7 @@ fn main () -> Result<()>{
         const SIZES: [usize; NUM_SIZES] = [1, 64, 1024, 64*1024, 512*1024];
         for i in 0..NUM_SIZES {
             if let Ok(time) = time_to_read_write(SIZES[i]) {
-                pr_info!("{:.2}\t{:.2}", time.read, time.write);
+                pr_info!("{:?}\t{:?}", time.read, time.write);
             } else {
                 pr_info!("failed!")
             }
@@ -181,6 +181,7 @@ impl kernel::Module for MymemTest {
     fn init(name: &'static CStr, _module: &'static ThisModule) -> Result<Self> {
         pr_info!("mymem_test (init)\n");
     }
+    Ok(MymemTest)
 }
 
 impl Drop for MymemTest {
