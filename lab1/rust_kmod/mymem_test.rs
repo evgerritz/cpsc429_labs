@@ -141,8 +141,8 @@ const N: i64 = 10;
 
 */
 fn main () -> Result<()>{
-    let buffer: mymem::RustMymem = mymem::RustMymem;
-    let buf_contents: [u8; 2] = [0,0]; 
+    let mut buffer: mymem::RustMymem = mymem::RustMymem;
+    let mut buf_contents: [u8; 2] = [0,0]; 
     buffer.read(&mut buf_contents, 0);
     let test_connection = true;
     if test_connection {
