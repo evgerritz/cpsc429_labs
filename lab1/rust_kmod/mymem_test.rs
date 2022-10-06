@@ -186,8 +186,9 @@ module! {
 struct MymemTest;
 
 impl kernel::Module for MymemTest {
-    fn init(name: &'static CStr, _module: &'static ThisModule) -> Result<Self> {
+    fn init(_name: &'static CStr, _module: &'static ThisModule) -> Result<Self> {
         pr_info!("mymem_test (init)\n");
+        main()?;
         Ok(MymemTest)
     }
 }
