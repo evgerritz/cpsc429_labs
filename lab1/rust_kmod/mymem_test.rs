@@ -181,7 +181,7 @@ module! {
     license: "GPL",
 }
 
-pub struct MymemTest;
+struct MymemTest;
 
 impl kernel::Module for MymemTest {
     fn init(name: &'static CStr, _module: &'static ThisModule) -> Result<Self> {
