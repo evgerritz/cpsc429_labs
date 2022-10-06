@@ -7,6 +7,7 @@ use kernel::{
     random,
 };
 
+/*
 static INIT_VAL: u64 = 0xDEADBEEF;
 const NUM_BYTES: usize = 8;
 
@@ -54,8 +55,11 @@ fn create_workers(w: i64, n: i64) -> Result<()> {
 
 
 fn percent_error(actual: f64, expected: f64) -> f64 {
-    let q: f64 = (actual - expected) / expected;
-    q.abs()*100f64 
+    let mut q: f64 = (actual - expected) / expected;
+    if q < 0 {
+        q *= -1;
+    }
+    q*100f64 
 }
 
 fn avg_counter_after_trials(w: i64, n: i64, num_trials: u64) -> Result<u64>{
@@ -134,14 +138,14 @@ fn time_to_read_write(num_bytes: usize) -> Result<RWTime> {
 const W: i64 = 10;
 const N: i64 = 10;
 
-
+*/
 fn main () -> Result<()>{
     let test_connection = true;
     if test_connection {
         // get access to kernel RustMymem, call read/write
         pr_info!("testing module")
     }
-
+    /*
     let run_timing = false;
     if run_timing {
         // initialize array of sizes in bytes of the operations
@@ -165,7 +169,9 @@ fn main () -> Result<()>{
         interpret_results(w, n, average_counter);
         Ok(())
     }
+    */
 }
+
 
 module! {
     type: MymemTest,
@@ -181,7 +187,7 @@ impl kernel::Module for MymemTest {
     fn init(name: &'static CStr, _module: &'static ThisModule) -> Result<Self> {
         pr_info!("mymem_test (init)\n");
     }
-    Ok(MymemTest)
+    Ok(MymemTest {})
 }
 
 impl Drop for MymemTest {
