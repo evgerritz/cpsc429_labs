@@ -143,7 +143,7 @@ fn main () -> Result<()>{
     let test_connection = true;
     if test_connection {
         // get access to kernel RustMymem, call read/write
-        pr_info!("testing module")
+        pr_info!("testing module");
     }
     /*
     let run_timing = false;
@@ -167,9 +167,9 @@ fn main () -> Result<()>{
         let average_counter = avg_counter_after_trials(W, N, num_trials)?;
 
         interpret_results(w, n, average_counter);
-        Ok(())
     }
     */
+    Ok(())
 }
 
 
@@ -187,7 +187,7 @@ impl kernel::Module for MymemTest {
     fn init(name: &'static CStr, _module: &'static ThisModule) -> Result<Self> {
         pr_info!("mymem_test (init)\n");
     }
-    Ok(MymemTest {})
+    Ok(MymemTest)
 }
 
 impl Drop for MymemTest {
