@@ -1,13 +1,13 @@
 use kernel::prelude::*;
-use kernel::{
-    file::{self, File}
+/*use kernel::{
+    file::{self, File},
     sync::{smutex::Mutex, Ref, RefBorrow},
     task::Task,
     ARef,
     random,
 };
 
-/*
+
 static INIT_VAL: u64 = 0xDEADBEEF;
 const NUM_BYTES: usize = 8;
 
