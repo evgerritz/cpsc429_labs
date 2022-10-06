@@ -48,7 +48,8 @@ quiet_cmd_rustc_library = $(if $(skip_clippy),RUSTC,$(RUSTC_OR_CLIPPY_QUIET)) L 
 	sed -i '/^\#/d' $(depfile) \
 	$(if $(rustc_objcopy),;$(OBJCOPY) $(rustc_objcopy) $@)
 
-$(obj)/rust_mymem.o: private skip_clippy = 1
-$(obj)/rust_mymem.o: private skip_flags = -Dunreachable_pub
-$(obj)/rust_myem.o: private rustc_target_flags = $(core-cfgs)
-	$(call if_changed_dep,rustc_library)
+#$(obj)/rust_mymem.o: private skip_clippy = 1
+#$(obj)/rust_mymem.o: private skip_flags = -Dunreachable_pub
+#$(obj)/rust_mymem.o: private rustc_target_flags = $(core-cfgs)
+#$(obj)/rust_mymem.o: $(RUST_LIB_SRC)/core/src/lib.rs $(obj)/target.json FORCE
+#	$(call if_changed_dep,rustc_library)
