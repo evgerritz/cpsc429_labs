@@ -1,4 +1,8 @@
 # SPDX-License-Identifier: GPL-2.0
+RUST_LIB_SRC ?= $(rustc_sysroot)/lib/rustlib/src/rust/library
+core-cfgs = \
+    --cfg no_fp_fmt_parse
+
 obj-$(CONFIG_SAMPLE_RUST_MINIMAL)		+= rust_minimal.o
 obj-$(CONFIG_SAMPLE_RUST_PRINT)			+= rust_print.o
 obj-$(CONFIG_SAMPLE_RUST_MODULE_PARAMETERS)	+= rust_module_parameters.o
@@ -22,3 +26,9 @@ subdir-$(CONFIG_SAMPLE_RUST_HOSTPROGS)		+= hostprogs
 
 $(obj)/exports_mymem_generated.h: $(obj)/rust_mymem.o FORCE
 	$(call if_changed,exports)
+
+$(obj)/rust_mymem.o: private skip_clippy = 1
+$(obj)/rust_mymem.o: private skip_flags = -Dunreachable_pub
+$(obj)/rust_myem.o: private rustc_target_flags = $(core-cfgs)
+$(obj)/core.o: $(RUST_LIB_SRC)/core/src/lib.rs $(obj)/target.json FORCE
+	$(call if_changed_dep,rustc_library)
