@@ -1,3 +1,4 @@
+extern crate mymem;
 use kernel::prelude::*;
 /*use kernel::{
     file::{self, File},
@@ -140,6 +141,7 @@ const N: i64 = 10;
 
 */
 fn main () -> Result<()>{
+    let buffer: mymem::RustMymem = mymem::RustMymem;
     let test_connection = true;
     if test_connection {
         // get access to kernel RustMymem, call read/write
