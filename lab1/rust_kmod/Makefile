@@ -22,13 +22,15 @@ obj-$(CONFIG_SAMPLE_RUST_MYMEM)		+= rust_mymem.o
 always-$(CONFIG_SAMPLE_RUST_MYMEM)		+= exports_mymem_generated.h
 #obj-$(CONFIG_SAMPLE_RUST_MYMEM)		+= exports.o
 
-subdir-$(CONFIG_SAMPLE_RUST_HOSTPROGS)		+= hostprogs
 
-$(obj)/exports_mymem_generated.h: $(obj)/rust_mymem.o FORCE
-	$(call if_changed,exports)
 
 $(obj)/rust_mymem.o: private skip_clippy = 1
 $(obj)/rust_mymem.o: private skip_flags = -Dunreachable_pub
 $(obj)/rust_myem.o: private rustc_target_flags = $(core-cfgs)
 $(obj)/core.o: $(RUST_LIB_SRC)/core/src/lib.rs $(obj)/target.json FORCE
 	$(call if_changed_dep,rustc_library)
+
+$(obj)/exports_mymem_generated.h: $(obj)/rust_mymem.o FORCE
+	$(call if_changed,exports)
+
+subdir-$(CONFIG_SAMPLE_RUST_HOSTPROGS)		+= hostprogs
