@@ -7,7 +7,7 @@ use kernel::{
     file::{self, File, SeekFrom},
     //io_buffer::{IoBufferReader, IoBufferWriter},
     miscdev,
-    sync::{smutex::Mutex, Ref, RefBorrow},
+    sync::{smutex::Mutex, Ref},
 };
 
 module! {
@@ -20,17 +20,15 @@ module! {
 
 const BUFFER_SIZE: usize = 512*1024;
 
-
 pub struct RustMymem;
 
 static BUFFER: Mutex<[u8; BUFFER_SIZE]> = Mutex::new( [0u8; BUFFER_SIZE] );
-
 
 impl kernel::Module for RustMymem {
     fn init(name: &'static CStr, _module: &'static ThisModule) -> Result<Self> {
         pr_info!("rust_mymem (init)\n");
 
-        let mut buffer_p = &mut BUFFER.lock();
+        let buffer_p = &BUFFER.lock();
 
         pr_info!("buffer len: {:?}", buffer_p.len());
         Ok(RustMymem)
