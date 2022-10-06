@@ -4,7 +4,7 @@
 
 use kernel::prelude::*;
 use kernel::{
-    /file::{self, File, SeekFrom},
+    //file::{self, File, SeekFrom},
     //io_buffer::{IoBufferReader, IoBufferWriter},
     miscdev,
     sync::{smutex::Mutex, Ref},
