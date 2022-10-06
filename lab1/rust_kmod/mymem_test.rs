@@ -1,4 +1,4 @@
-extern crate mymem;
+use mymem;
 use kernel::prelude::*;
 /*use kernel::{
     file::{self, File},
