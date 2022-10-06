@@ -3,7 +3,7 @@ use kernel::{
     file::{self, File}
     sync::{smutex::Mutex, Ref, RefBorrow},
     task::Task,
-    ARef
+    ARef,
     random,
 };
 
@@ -181,13 +181,13 @@ module! {
     license: "GPL",
 }
 
-struct MymemTest;
+pub struct MymemTest;
 
 impl kernel::Module for MymemTest {
     fn init(name: &'static CStr, _module: &'static ThisModule) -> Result<Self> {
         pr_info!("mymem_test (init)\n");
+        Ok(MymemTest)
     }
-    Ok(MymemTest)
 }
 
 impl Drop for MymemTest {
