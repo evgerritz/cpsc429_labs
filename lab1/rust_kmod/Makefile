@@ -1,5 +1,4 @@
 # SPDX-License-Identifier: GPL-2.0
-
 obj-$(CONFIG_SAMPLE_RUST_MINIMAL)		+= rust_minimal.o
 obj-$(CONFIG_SAMPLE_RUST_PRINT)			+= rust_print.o
 obj-$(CONFIG_SAMPLE_RUST_MODULE_PARAMETERS)	+= rust_module_parameters.o
@@ -17,5 +16,9 @@ obj-$(CONFIG_SAMPLE_RUST_FS)			+= rust_fs.o
 obj-$(CONFIG_SAMPLE_RUST_SELFTESTS)		+= rust_selftests.o
 obj-$(CONFIG_SAMPLE_RUST_MYMEM)		+= rust_mymem.o
 always-$(CONFIG_SAMPLE_RUST_MYMEM)		+= exports_mymem_generated.h
+obj-$(CONFIG_SAMPLE_RUST_MYMEM)		+= exports.o
 
 subdir-$(CONFIG_SAMPLE_RUST_HOSTPROGS)		+= hostprogs
+
+$(obj)/exports_mymem_generated.h: $(obj)/rust_mymem.o FORCE
+	$(call if_changed,exports)
