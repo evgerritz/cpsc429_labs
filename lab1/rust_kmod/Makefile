@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0
-RUST_LIB_SRC ?= $(rustc_sysroot)/lib/rustlib/src/rust/library
-core-cfgs = \
+#RUST_LIB_SRC ?= $(rustc_sysroot)/lib/rustlib/src/rust/library
+#core-cfgs = \
     --cfg no_fp_fmt_parse
 
 obj-$(CONFIG_SAMPLE_RUST_MINIMAL)		+= rust_minimal.o
@@ -20,11 +20,10 @@ obj-$(CONFIG_SAMPLE_RUST_FS)			+= rust_fs.o
 obj-$(CONFIG_SAMPLE_RUST_SELFTESTS)		+= rust_selftests.o
 obj-$(CONFIG_SAMPLE_RUST_MYMEM)		+= rust_mymem.o
 obj-$(CONFIG_SAMPLE_MYMEM_TEST)		+= mymem_test.o
-obj-$(CONFIG_RUST)		+= exports_mymem_generated.h
-obj-$(CONFIG_RUST)		+= exports.o
+obj-$(CONFIG_SAMPLE_RUST_MYMEM)		+= exports_mymem_generated.h
+obj-$(CONFIG_SAMPLE_RUST_MYMEM)		+= exports.o
 
 subdir-$(CONFIG_SAMPLE_RUST_HOSTPROGS)		+= hostprogs
-
 
 
 quiet_cmd_exports = EXPORTS $@
