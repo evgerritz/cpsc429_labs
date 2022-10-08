@@ -52,5 +52,5 @@ quiet_cmd_rustc_library = $(if $(skip_clippy),RUSTC,$(RUSTC_OR_CLIPPY_QUIET)) L 
 $(obj)/rust_mymem.o: private skip_clippy = 1
 $(obj)/rust_mymem.o: private skip_flags = -Dunreachable_pub
 $(obj)/rust_mymem.o: private rustc_target_flags = $(core-cfgs)
-$(obj)/rust_mymem.o: rust_mymem.rs $(obj)/target.json FORCE
+$(obj)/rust_mymem.o: rust_mymem.rs 
 	$(call if_changed_dep,rustc_library)
