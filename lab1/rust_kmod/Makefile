@@ -21,7 +21,7 @@ obj-$(CONFIG_SAMPLE_RUST_SELFTESTS)		+= rust_selftests.o
 obj-$(CONFIG_SAMPLE_RUST_MYMEM)		+= rust_mymem.o
 #obj-$(CONFIG_SAMPLE_MYMEM_TEST)		+= mymem_test.o
 always-$(CONFIG_RUST)		+= exports_mymem_generated.h
-obj-$(CONFIG_SAMPLE_RUST_MYMEM)		+= exports.o
+#obj-$(CONFIG_RUST)		+= exports.o
 
 subdir-$(CONFIG_SAMPLE_RUST_HOSTPROGS)		+= hostprogs
 
@@ -53,3 +53,5 @@ $(obj)/exports_mymem_generated.h: $(obj)/rust_mymem.o FORCE
 #$(obj)/rust_mymem.o: private rustc_target_flags = $(core-cfgs)
 #$(obj)/rust_mymem.o: rust_mymem.rs 
 #	$(call if_changed_dep,rustc_library)
+#
+rust_mymem.o: exports.o
