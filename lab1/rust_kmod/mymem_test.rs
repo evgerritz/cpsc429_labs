@@ -1,5 +1,6 @@
 use mymem;
 use kernel::prelude::*;
+use crate::bindings;
 /*use kernel::{
     file::{self, File},
     sync::{smutex::Mutex, Ref, RefBorrow},
@@ -7,6 +8,7 @@ use kernel::prelude::*;
     ARef,
     random,
 };
+
 
 
 static INIT_VAL: u64 = 0xDEADBEEF;
@@ -83,6 +85,19 @@ fn interpret_results(w: i64, n:i64, average_counter: u64) {
         pr_info!("Counter value correct!");
     }
 }
+*/
+
+unsafe impl AlwaysRefCounted for File {
+    fn inc_ref(&self) {
+        // SAFETY: The existence of a shared reference means that the refcount is nonzero.
+        unsafe { bindings::get_file(self.0.get()) };
+    }
+
+    unsafe fn dec_ref(obj: ptr::NonNull<Self>) {
+        // SAFETY: The safety requirements guarantee that the refcount is nonzero.
+        unsafe { bindings::fput(obj.cast().as_ptr()) }
+    }
+}
 
 
 
@@ -96,7 +111,7 @@ struct RWTime {
 // gets time measurements for reads/writes of size num_bytes and
 // fills out an rw_time struct
 fn time_to_read_write(num_bytes: usize) -> Result<RWTime> {
-    let mut f = File::options().read(true).write(true).open("/dev/mymem")?;
+    let mut buffer: mymem::RustMymem = mymem::RustMymem;
 
     let mut total_wrt_time: u64 = 0;
     let mut total_rd_time: u64 = 0;
@@ -108,18 +123,16 @@ fn time_to_read_write(num_bytes: usize) -> Result<RWTime> {
         
         random::getrandom(&but_to_wrt[..])?;
 
-        //seek back to beginning
         //let start = ProcessTime::try_now().expect("Getting process time failed");
-        let n = f.write(&buf_to_wrt[0..], 0);
+        let n = buffer.write(&buf_to_wrt, 0);
         assert!(n == num_bytes);
         //let cpu_time: Duration = start.try_elapsed().expect("Getting process time failed");
         //println!("{:?}\t{:?}\t{:?}", cpu_time, cpu_time.as_secs(), cpu_time.subsec_micros());
         //total_wrt_time += cpu_time.subsec_micros() as u64;
 
 
-        f.rewind()?;
         //let start2 = ProcessTime::try_now().expect("Getting process time failed");
-        let n = f.read(&mut buf_to_rd, 0);
+        let n = buffer.read(&mut buf_to_rd, 0);
         assert!(n == num_bytes);
         //let cpu_time2: Duration = start2.try_elapsed().expect("Getting process time failed");
         //println!("{:?}\t{:?}\t{:?}", cpu_time2, cpu_time2.as_secs(), cpu_time2.subsec_micros());
@@ -139,18 +152,10 @@ fn time_to_read_write(num_bytes: usize) -> Result<RWTime> {
 const W: i64 = 10;
 const N: i64 = 10;
 
-*/
+// while we are loading this code as a module, it really is just a program;
+// this main function makes that idea explicit.
 fn main () -> Result<()>{
-    let mut buffer: mymem::RustMymem = mymem::RustMymem;
-    let mut buf_contents: [u8; 2] = [0,0]; 
-    buffer.read(&mut buf_contents, 0);
-    let test_connection = true;
-    if test_connection {
-        // get access to kernel RustMymem, call read/write
-        pr_info!("testing module");
-    }
-    /*
-    let run_timing = false;
+    let run_timing = true;
     if run_timing {
         // initialize array of sizes in bytes of the operations
         const NUM_SIZES: usize = 5;
@@ -164,6 +169,7 @@ fn main () -> Result<()>{
         }
     }
 
+    /*
     let run_threads = false;
     if run_threads {
 
