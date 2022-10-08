@@ -11,6 +11,7 @@ use kernel::{
 
 
 
+/*
 static INIT_VAL: u64 = 0xDEADBEEF;
 const NUM_BYTES: usize = 8;
 
