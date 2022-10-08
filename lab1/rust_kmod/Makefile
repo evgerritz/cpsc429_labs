@@ -20,7 +20,7 @@ obj-$(CONFIG_SAMPLE_RUST_FS)			+= rust_fs.o
 obj-$(CONFIG_SAMPLE_RUST_SELFTESTS)		+= rust_selftests.o
 obj-$(CONFIG_SAMPLE_RUST_MYMEM)		+= rust_mymem.o
 obj-$(CONFIG_SAMPLE_MYMEM_TEST)		+= mymem_test.o
-obj-$(CONFIG_SAMPLE_RUST_MYMEM)		+= exports_mymem_generated.h
+obj-$(CONFIG_RUST)		+= exports_mymem_generated.h
 obj-$(CONFIG_RUST)		+= exports.o
 
 subdir-$(CONFIG_SAMPLE_RUST_HOSTPROGS)		+= hostprogs
@@ -37,8 +37,8 @@ quiet_cmd_exports = EXPORTS $@
 $(obj)/exports_mymem_generated.h: $(obj)/rust_mymem.o FORCE
 	$(call if_changed,exports)
 
-quiet_cmd_rustc_library = $(if $(skip_clippy),RUSTC,$(RUSTC_OR_CLIPPY_QUIET)) L $@
-      cmd_rustc_library = \
+#quiet_cmd_rustc_library = $(if $(skip_clippy),RUSTC,$(RUSTC_OR_CLIPPY_QUIET)) L $@
+#      cmd_rustc_library = \
 	OBJTREE=$(abspath $(objtree)) \
 	$(if $(skip_clippy),$(RUSTC),$(RUSTC_OR_CLIPPY)) \
 		$(filter-out $(skip_flags),$(rust_flags) $(rustc_target_flags)) \
@@ -49,8 +49,8 @@ quiet_cmd_rustc_library = $(if $(skip_clippy),RUSTC,$(RUSTC_OR_CLIPPY_QUIET)) L 
 	sed -i '/^\#/d' $(depfile) \
 	$(if $(rustc_objcopy),;$(OBJCOPY) $(rustc_objcopy) $@)
 
-$(obj)/rust_mymem.o: private skip_clippy = 1
-$(obj)/rust_mymem.o: private skip_flags = -Dunreachable_pub
-$(obj)/rust_mymem.o: private rustc_target_flags = $(core-cfgs)
-$(obj)/rust_mymem.o: rust_mymem.rs 
-	$(call if_changed_dep,rustc_library)
+#$(obj)/rust_mymem.o: private skip_clippy = 1
+#$(obj)/rust_mymem.o: private skip_flags = -Dunreachable_pub
+#$(obj)/rust_mymem.o: private rustc_target_flags = $(core-cfgs)
+#$(obj)/rust_mymem.o: rust_mymem.rs 
+SAMPLE_RUST_MYMEM#	$(call if_changed_dep,rustc_library)
