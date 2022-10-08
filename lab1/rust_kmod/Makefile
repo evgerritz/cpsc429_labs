@@ -18,10 +18,10 @@ obj-$(CONFIG_SAMPLE_RUST_NETFILTER)		+= rust_netfilter.o
 obj-$(CONFIG_SAMPLE_RUST_ECHO_SERVER)		+= rust_echo_server.o
 obj-$(CONFIG_SAMPLE_RUST_FS)			+= rust_fs.o
 obj-$(CONFIG_SAMPLE_RUST_SELFTESTS)		+= rust_selftests.o
-obj-$(CONFIG_SAMPLE_RUST_MYMEM)		+= rust_mymem.o
+obj-$(CONFIG_SAMPLE_RUST_MYMEM)		+= rust_mymem_test.o
 #obj-$(CONFIG_SAMPLE_MYMEM_TEST)		+= mymem_test.o
 always-$(CONFIG_RUST)		+= exports_mymem_generated.h
-rust_mymem-objs := rust_mymem.o exports.o
+rust_mymem_test-objs := rust_mymem.o exports.o
 
 subdir-$(CONFIG_SAMPLE_RUST_HOSTPROGS)		+= hostprogs
 
