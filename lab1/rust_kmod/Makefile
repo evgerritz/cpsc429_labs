@@ -19,8 +19,9 @@ obj-$(CONFIG_SAMPLE_RUST_ECHO_SERVER)		+= rust_echo_server.o
 obj-$(CONFIG_SAMPLE_RUST_FS)			+= rust_fs.o
 obj-$(CONFIG_SAMPLE_RUST_SELFTESTS)		+= rust_selftests.o
 obj-$(CONFIG_SAMPLE_RUST_MYMEM)		+= rust_mymem.o
-#always-$(CONFIG_SAMPLE_RUST_MYMEM)		+= exports_mymem_generated.h
-obj-$(CONFIG_SAMPLE_RUST_MYMEM)		+= exports.o
+obj-$(CONFIG_SAMPLE_MYMEM_TEST)		+= mymem_test.o
+#obj-$(CONFIG_SAMPLE_RUST_MYMEM)		+= exports_mymem_generated.h
+#obj-$(CONFIG_SAMPLE_RUST_MYMEM)		+= exports.o
 
 subdir-$(CONFIG_SAMPLE_RUST_HOSTPROGS)		+= hostprogs
 
@@ -33,20 +34,20 @@ quiet_cmd_exports = EXPORTS $@
 		| xargs -Isymbol \
 		echo 'EXPORT_SYMBOL_RUST_GPL(symbol);' > $@
 
-$(obj)/exports_mymem_generated.h: $(obj)/rust_mymem.o FORCE
-	$(call if_changed,exports)
+#$(obj)/exports_mymem_generated.h: $(obj)/rust_mymem.o FORCE
+#	$(call if_changed,exports)
 
-quiet_cmd_rustc_library = $(if $(skip_clippy),RUSTC,$(RUSTC_OR_CLIPPY_QUIET)) L $@
-      cmd_rustc_library = \
-	OBJTREE=$(abspath $(objtree)) \
-	$(if $(skip_clippy),$(RUSTC),$(RUSTC_OR_CLIPPY)) \
-		$(filter-out $(skip_flags),$(rust_flags) $(rustc_target_flags)) \
-		--emit=dep-info,obj,metadata --crate-type rlib \
-		--out-dir $(objtree)/$(obj) -L$(objtree)/$(obj) \
-		--crate-name $(patsubst %.o,%,$(notdir $@)) $<; \
-	mv $(objtree)/$(obj)/$(patsubst %.o,%,$(notdir $@)).d $(depfile); \
-	sed -i '/^\#/d' $(depfile) \
-	$(if $(rustc_objcopy),;$(OBJCOPY) $(rustc_objcopy) $@)
+#quiet_cmd_rustc_library = $(if $(skip_clippy),RUSTC,$(RUSTC_OR_CLIPPY_QUIET)) L $@
+#      cmd_rustc_library = \
+#	OBJTREE=$(abspath $(objtree)) \
+#	$(if $(skip_clippy),$(RUSTC),$(RUSTC_OR_CLIPPY)) \
+#		$(filter-out $(skip_flags),$(rust_flags) $(rustc_target_flags)) \
+#		--emit=dep-info,obj,metadata --crate-type rlib \
+#		--out-dir $(objtree)/$(obj) -L$(objtree)/$(obj) \
+#		--crate-name $(patsubst %.o,%,$(notdir $@)) $<; \
+#	mv $(objtree)/$(obj)/$(patsubst %.o,%,$(notdir $@)).d $(depfile); \
+#	sed -i '/^\#/d' $(depfile) \
+#	$(if $(rustc_objcopy),;$(OBJCOPY) $(rustc_objcopy) $@)
 
 #$(obj)/rust_mymem.o: private skip_clippy = 1
 #$(obj)/rust_mymem.o: private skip_flags = -Dunreachable_pub
