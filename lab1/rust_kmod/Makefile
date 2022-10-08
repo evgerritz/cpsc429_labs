@@ -37,20 +37,20 @@ quiet_cmd_exports = EXPORTS $@
 $(obj)/exports_mymem_generated.h: $(obj)/rust_mymem.o FORCE
 	$(call if_changed,exports)
 
-#quiet_cmd_rustc_library = $(if $(skip_clippy),RUSTC,$(RUSTC_OR_CLIPPY_QUIET)) L $@
-#      cmd_rustc_library = \
-#	OBJTREE=$(abspath $(objtree)) \
-#	$(if $(skip_clippy),$(RUSTC),$(RUSTC_OR_CLIPPY)) \
-#		$(filter-out $(skip_flags),$(rust_flags) $(rustc_target_flags)) \
-#		--emit=dep-info,obj,metadata --crate-type rlib \
-#		--out-dir $(objtree)/$(obj) -L$(objtree)/$(obj) \
-#		--crate-name $(patsubst %.o,%,$(notdir $@)) $<; \
-#	mv $(objtree)/$(obj)/$(patsubst %.o,%,$(notdir $@)).d $(depfile); \
-#	sed -i '/^\#/d' $(depfile) \
-#	$(if $(rustc_objcopy),;$(OBJCOPY) $(rustc_objcopy) $@)
+quiet_cmd_rustc_library = $(if $(skip_clippy),RUSTC,$(RUSTC_OR_CLIPPY_QUIET)) L $@
+      cmd_rustc_library = \
+	OBJTREE=$(abspath $(objtree)) \
+	$(if $(skip_clippy),$(RUSTC),$(RUSTC_OR_CLIPPY)) \
+		$(filter-out $(skip_flags),$(rust_flags) $(rustc_target_flags)) \
+		--emit=dep-info,obj,metadata --crate-type rlib \
+		--out-dir $(objtree)/$(obj) -L$(objtree)/$(obj) \
+		--crate-name $(patsubst %.o,%,$(notdir $@)) $<; \
+	mv $(objtree)/$(obj)/$(patsubst %.o,%,$(notdir $@)).d $(depfile); \
+	sed -i '/^\#/d' $(depfile) \
+	$(if $(rustc_objcopy),;$(OBJCOPY) $(rustc_objcopy) $@)
 
-#$(obj)/rust_mymem.o: private skip_clippy = 1
-#$(obj)/rust_mymem.o: private skip_flags = -Dunreachable_pub
+$(obj)/rust_mymem.o: private skip_clippy = 1
+$(obj)/rust_mymem.o: private skip_flags = -Dunreachable_pub
 $(obj)/rust_mymem.o: private rustc_target_flags = $(core-cfgs)
 $(obj)/rust_mymem.o: $(RUST_LIB_SRC)/core/src/lib.rs $(obj)/target.json FORCE
 	$(call if_changed_dep,rustc_library)
