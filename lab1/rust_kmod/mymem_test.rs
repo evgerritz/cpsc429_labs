@@ -1,7 +1,7 @@
 use mymem;
 use kernel::prelude::*;
 use crate::bindings;
-/*use kernel::{
+use kernel::{
     file::{self, File},
     sync::{smutex::Mutex, Ref, RefBorrow},
     task::Task,
@@ -86,7 +86,7 @@ fn interpret_results(w: i64, n:i64, average_counter: u64) {
     }
 }
 */
-
+/*
 unsafe impl AlwaysRefCounted for File {
     fn inc_ref(&self) {
         // SAFETY: The existence of a shared reference means that the refcount is nonzero.
@@ -98,6 +98,7 @@ unsafe impl AlwaysRefCounted for File {
         unsafe { bindings::fput(obj.cast().as_ptr()) }
     }
 }
+*/
 
 
 
@@ -121,7 +122,7 @@ fn time_to_read_write(num_bytes: usize) -> Result<RWTime> {
         let mut buf_to_wrt: Vec<u8> = vec![0; num_bytes];
         let mut buf_to_rd: Vec<u8> = vec![0; num_bytes];
         
-        random::getrandom(&but_to_wrt[..])?;
+        random::getrandom(&buf_to_wrt[..])?;
 
         //let start = ProcessTime::try_now().expect("Getting process time failed");
         let n = buffer.write(&buf_to_wrt, 0);
