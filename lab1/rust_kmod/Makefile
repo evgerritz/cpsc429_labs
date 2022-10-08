@@ -20,8 +20,8 @@ obj-$(CONFIG_SAMPLE_RUST_FS)			+= rust_fs.o
 obj-$(CONFIG_SAMPLE_RUST_SELFTESTS)		+= rust_selftests.o
 obj-$(CONFIG_SAMPLE_RUST_MYMEM)		+= rust_mymem.o
 obj-$(CONFIG_SAMPLE_MYMEM_TEST)		+= mymem_test.o
-always-$(CONFIG_SAMPLE_RUST_MYMEM)		+= exports_mymem_generated.h
-obj-$(CONFIG_SAMPLE_RUST_MYMEM)		+= exports.o
+always-$(CONFIG_RUST)		+= exports_mymem_generated.h
+obj-$(CONFIG_RUST)		+= exports.o
 
 subdir-$(CONFIG_SAMPLE_RUST_HOSTPROGS)		+= hostprogs
 
