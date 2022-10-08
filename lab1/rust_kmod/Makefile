@@ -20,8 +20,8 @@ obj-$(CONFIG_SAMPLE_RUST_FS)			+= rust_fs.o
 obj-$(CONFIG_SAMPLE_RUST_SELFTESTS)		+= rust_selftests.o
 obj-$(CONFIG_SAMPLE_RUST_MYMEM)		+= rust_mymem.o
 obj-$(CONFIG_SAMPLE_MYMEM_TEST)		+= mymem_test.o
-#obj-$(CONFIG_SAMPLE_RUST_MYMEM)		+= exports_mymem_generated.h
-#obj-$(CONFIG_SAMPLE_RUST_MYMEM)		+= exports.o
+obj-$(CONFIG_SAMPLE_RUST_MYMEM)		+= exports_mymem_generated.h
+obj-$(CONFIG_SAMPLE_RUST_MYMEM)		+= exports.o
 
 subdir-$(CONFIG_SAMPLE_RUST_HOSTPROGS)		+= hostprogs
 
@@ -32,10 +32,10 @@ quiet_cmd_exports = EXPORTS $@
 	$(NM) -p --defined-only $< \
 		| grep -E ' (T|R|D) ' | cut -d ' ' -f 3 \
 		| xargs -Isymbol \
-		echo 'EXPORT_SYMBOL_RUST_GPL(symbol);' > $@
+		echo 'EXPORT_SYMBOL_RUST_GPL(symbol);' | grep -v 'module' > $@
 
-#$(obj)/exports_mymem_generated.h: $(obj)/rust_mymem.o FORCE
-#	$(call if_changed,exports)
+$(obj)/exports_mymem_generated.h: $(obj)/rust_mymem.o FORCE
+	$(call if_changed,exports)
 
 #quiet_cmd_rustc_library = $(if $(skip_clippy),RUSTC,$(RUSTC_OR_CLIPPY_QUIET)) L $@
 #      cmd_rustc_library = \
