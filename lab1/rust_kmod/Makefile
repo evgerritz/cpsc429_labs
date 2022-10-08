@@ -33,8 +33,6 @@ quiet_cmd_exports = EXPORTS $@
 		| xargs -Isymbol \
 		echo 'EXPORT_SYMBOL_RUST_GPL(symbol);' | grep -v 'module' > $@
 
-$(obj)/exports_mymem_generated.h: $(obj)/rust_mymem_main.o FORCE
+$(obj)/exports_mymem_generated.h: $(obj)/rust_mymem.o FORCE
 	$(call if_changed,exports)
 
-$(obj)/rust_mymem_main.o:
-	rustc $(obj)/rust_mymem_main.rs -o $(obj)/rust_mymem_main.o
