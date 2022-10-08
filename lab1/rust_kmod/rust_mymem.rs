@@ -41,6 +41,7 @@ impl Drop for RustMymem {
     }
 }
 
+
 impl RustMymem {
     pub fn read( &mut self, outbuf: &mut [u8], offset: usize ) -> usize {
         pr_info!("rust_mymem (read)");

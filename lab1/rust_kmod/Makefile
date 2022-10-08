@@ -53,4 +53,4 @@ $(obj)/exports_mymem_generated.h: $(obj)/rust_mymem.o FORCE
 #$(obj)/rust_mymem.o: private skip_flags = -Dunreachable_pub
 #$(obj)/rust_mymem.o: private rustc_target_flags = $(core-cfgs)
 #$(obj)/rust_mymem.o: rust_mymem.rs 
-SAMPLE_RUST_MYMEM#	$(call if_changed_dep,rustc_library)
+#	$(call if_changed_dep,rustc_library)
