@@ -37,4 +37,4 @@ $(obj)/exports_mymem_generated.h: $(obj)/rust_mymem_main.o FORCE
 	$(call if_changed,exports)
 
 $(obj)/rust_mymem_main.o:
-	rustc rust_mymem_main.rs -o rust_mymem_main.o
+	rustc $(obj)/rust_mymem_main.rs -o $(obj)/rust_mymem_main.o
