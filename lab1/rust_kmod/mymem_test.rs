@@ -3,7 +3,7 @@ use kernel::bindings;
 use kernel::prelude::*;
 use kernel::{
     file::{self, File},
-    //sync::{smutex::Mutex, Ref, RefBorrow},
+    //sync::{smutex::Mutex}, Ref, RefBorrow},
     random,
 };
 
@@ -118,8 +118,8 @@ fn time_to_read_write(num_bytes: usize) -> Result<RWTime> {
     const TRIALS: u64 = 1000;
     for _ in 0..TRIALS {
         // generate random buffer, to ensure no caching between trials
-        let mut buf_to_wrt: Vec<u8> = Vec::with_capacity(num_bytes);
-        let mut buf_to_rd: Vec<u8> = Vec::with_capacity(num_bytes);
+        let mut buf_to_wrt: Vec<u8> = Vec::try_with_capacity(num_bytes);
+        let mut buf_to_rd: Vec<u8> = Vec::try_with_capacity(num_bytes);
         
         random::getrandom(&mut buf_to_wrt[..])?;
 

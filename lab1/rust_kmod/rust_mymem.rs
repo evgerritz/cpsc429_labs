@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 
+//! Rust Mymem module, part 5 version
+
 use kernel::prelude::*;
 use kernel::bindings;
 use kernel::{
@@ -19,6 +21,7 @@ module! {
 
 const BUFFER_SIZE: usize = 512*1024;
 
+/// struct providing accessing to the module for our test program
 pub struct RustMymem;
 
 static BUFFER: Mutex<[u8; BUFFER_SIZE]> = Mutex::new( [0u8; BUFFER_SIZE] );
@@ -42,6 +45,7 @@ impl Drop for RustMymem {
 
 
 impl RustMymem {
+    /// reads into the buffer, starting at offset
     pub fn read( &mut self, _outbuf: &mut [u8], _offset: usize ) -> usize {
         pr_info!("rust_mymem (read)");
         /*if data.is_empty() {
@@ -65,6 +69,7 @@ impl RustMymem {
         0
     }
 
+    /// writes to the buffer, starting at offset
     pub fn write( &mut self, _inbuf: &[u8], _offset: usize ) -> usize {
         pr_info!("rust_mymem (write)");
         0
