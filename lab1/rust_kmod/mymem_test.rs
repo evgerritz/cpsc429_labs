@@ -123,8 +123,8 @@ fn time_to_read_write(num_bytes: usize) -> Result<RWTime> {
         
         random::getrandom(&mut buf_to_wrt[..])?;
 
-        let start: bindings::timespec64 = {tv_sec: 0, tv_nsec: 0};
-        let end: bindings::timespec64 = {tv_sec: 0, tv_nsec: 0};
+        let start = bindings::timespec64 {tv_sec: 0, tv_nsec: 0};
+        let end = bindings::timespec64 {tv_sec: 0, tv_nsec: 0};
         unsafe { bindings::ktime_get_ts64(&mut start); }
         let n = buffer.write(&buf_to_wrt, 0);
         unsafe { bindings::ktime_get_ts64(&mut end); }
