@@ -55,7 +55,7 @@ impl RustMymem {
             return EINVAL.to_kernel_errno() as usize;
         }
         // Write starting from offset
-        outbuf[..].clone_from_slice(buffer[offset..][..num_bytes]);
+        outbuf.clone_from_slice(&buffer[offset..][..num_bytes]);
 
         num_bytes
     }
