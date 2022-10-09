@@ -1,5 +1,5 @@
 use mymem;
-use bindings;
+use kernel::bindings;
 use kernel::prelude::*;
 use kernel::{
     file::{self, File},
