@@ -1,6 +1,6 @@
 use mymem;
 use kernel::prelude::*;
-use crate::bindings;
+use bindings;
 use kernel::{
     file::{self, File},
     sync::{smutex::Mutex, Ref, RefBorrow},
@@ -123,7 +123,7 @@ fn time_to_read_write(num_bytes: usize) -> Result<RWTime> {
         let mut buf_to_wrt: Vec<u8> = vec![0; num_bytes];
         let mut buf_to_rd: Vec<u8> = vec![0; num_bytes];
         
-        random::getrandom(&buf_to_wrt[..])?;
+        random::getrandom(&mut buf_to_wrt[..])?;
 
         //let start = ProcessTime::try_now().expect("Getting process time failed");
         let n = buffer.write(&buf_to_wrt, 0);
