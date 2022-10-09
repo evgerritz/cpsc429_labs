@@ -121,7 +121,6 @@ fn time_to_read_write(num_bytes: usize) -> Result<RWTime> {
         assert!(n == num_bytes);
         //total_wrt_time += cpu_time.subsec_micros() as u64;
 
-
         unsafe { bindings::ktime_get_ts64(&mut start); }
         let n = buffer.read(&mut buf_to_rd, 0);
         unsafe { bindings::ktime_get_ts64(&mut end); }
@@ -135,8 +134,8 @@ fn time_to_read_write(num_bytes: usize) -> Result<RWTime> {
     }
 
     Ok(RWTime {
-        read: total_rd_time / TRIALS ,
-        write: total_wrt_time / TRIALS ,
+        read: 0, //total_rd_time / TRIALS ,
+        write: 0 //total_wrt_time / TRIALS ,
     })
 }
 
