@@ -109,7 +109,6 @@ fn time_to_read_write(num_bytes: usize) -> Result<RWTime> {
         // generate random buffer, to ensure no caching between trials
         let mut buf_to_wrt: Vec<u8> = Vec::try_with_capacity(num_bytes)?;
         let mut buf_to_rd: Vec<u8> = Vec::try_with_capacity(num_bytes)?;
-        pr_info!("{:?}", buf_to_rd.len());
         
         random::getrandom(&mut buf_to_wrt[..])?;
 
