@@ -63,7 +63,7 @@ impl RustMymem {
     /// writes to the buffer, starting at offset
     pub fn write( &mut self, inbuf: &[u8], offset: usize ) -> usize {
 
-        let mut buffer = &BUFFER.lock();
+        let mut buffer = &mut BUFFER.lock();
 
         let num_bytes: usize = inbuf.len();
 
