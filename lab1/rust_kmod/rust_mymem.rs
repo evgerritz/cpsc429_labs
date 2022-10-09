@@ -8,7 +8,7 @@ use kernel::{
     //file::{self, File, SeekFrom},
     //io_buffer::{IoBufferReader, IoBufferWriter},
     //miscdev,
-    sync::{smutex::Mutex, Ref},
+    sync::{smutex::Mutex}//, Ref},
 };
 
 module! {
