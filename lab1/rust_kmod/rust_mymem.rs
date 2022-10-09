@@ -45,8 +45,8 @@ impl RustMymem {
     pub fn read( &mut self, outbuf: &mut [u8], offset: usize ) -> usize {
         let buffer = &BUFFER.lock();
 
-        let mut num_bytes: usize = outbuf.capacity();
-        let max_bytes: usize = buffer.capacity() - offset;
+        let mut num_bytes: usize = outbuf.len();
+        let max_bytes: usize = buffer.len() - offset;
         if max_bytes < num_bytes {
             num_bytes = max_bytes; 
         }
@@ -64,7 +64,7 @@ impl RustMymem {
     pub fn write( &mut self, inbuf: &[u8], offset: usize ) -> usize {
         let mut buffer = &mut BUFFER.lock();
 
-        let num_bytes: usize = inbuf.capacity();
+        let num_bytes: usize = inbuf.len();
 
         if num_bytes + offset > BUFFER_SIZE {
             return EINVAL.to_kernel_errno() as usize;
