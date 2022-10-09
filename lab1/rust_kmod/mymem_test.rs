@@ -100,7 +100,7 @@ struct RWTime {
 // gets time measurements for reads/writes of size num_bytes and
 // fills out an rw_time struct
 fn time_to_read_write(num_bytes: usize) -> Result<RWTime> {
-    let buffer: mymem::RustMymem = mymem::RustMymem;
+    let mut buffer: mymem::RustMymem = mymem::RustMymem;
 
     let mut total_wrt_time: u64 = 0;
     let mut total_rd_time: u64 = 0;
