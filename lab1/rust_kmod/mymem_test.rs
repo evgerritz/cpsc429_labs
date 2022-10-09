@@ -1,11 +1,9 @@
 use mymem;
-use kernel::prelude::*;
 use bindings;
+use kernel::prelude::*;
 use kernel::{
     file::{self, File},
-    sync::{smutex::Mutex, Ref, RefBorrow},
-    task::Task,
-    ARef,
+    //sync::{smutex::Mutex, Ref, RefBorrow},
     random,
 };
 

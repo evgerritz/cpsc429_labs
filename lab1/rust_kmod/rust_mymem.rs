@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: GPL-2.0
 
-//! Rust miscellaneous device sample.
-
 use kernel::prelude::*;
+use kernel::bindings;
 use kernel::{
     //file::{self, File, SeekFrom},
     //io_buffer::{IoBufferReader, IoBufferWriter},
-    miscdev,
+    //miscdev,
     sync::{smutex::Mutex, Ref},
 };
 
@@ -25,7 +24,7 @@ pub struct RustMymem;
 static BUFFER: Mutex<[u8; BUFFER_SIZE]> = Mutex::new( [0u8; BUFFER_SIZE] );
 
 impl kernel::Module for RustMymem {
-    fn init(name: &'static CStr, _module: &'static ThisModule) -> Result<Self> {
+    fn init(_name: &'static CStr, _module: &'static ThisModule) -> Result<Self> {
         pr_info!("rust_mymem (init)\n");
 
         let buffer_p = &BUFFER.lock();
@@ -43,7 +42,7 @@ impl Drop for RustMymem {
 
 
 impl RustMymem {
-    pub fn read( &mut self, outbuf: &mut [u8], offset: usize ) -> usize {
+    pub fn read( &mut self, _outbuf: &mut [u8], _offset: usize ) -> usize {
         pr_info!("rust_mymem (read)");
         /*if data.is_empty() {
             return Ok(0);
@@ -66,7 +65,7 @@ impl RustMymem {
         0
     }
 
-    pub fn write( &mut self, inbuf: &[u8], offset: usize ) -> usize {
+    pub fn write( &mut self, _inbuf: &[u8], _offset: usize ) -> usize {
         pr_info!("rust_mymem (write)");
         0
         /*if data.is_empty() {
