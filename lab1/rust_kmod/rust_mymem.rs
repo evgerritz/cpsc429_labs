@@ -3,7 +3,6 @@
 //! Rust Mymem module, part 5 version
 
 use kernel::prelude::*;
-use kernel::bindings;
 use kernel::{
     //file::{self, File, SeekFrom},
     //io_buffer::{IoBufferReader, IoBufferWriter},

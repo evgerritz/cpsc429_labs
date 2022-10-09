@@ -2,7 +2,7 @@ use mymem;
 //use kernel::bindings;
 use kernel::prelude::*;
 use kernel::{
-    file::{self, File},
+    //file::{self, File},
     //sync::{smutex::Mutex}, Ref, RefBorrow},
     random,
 };
@@ -113,8 +113,8 @@ struct RWTime {
 fn time_to_read_write(num_bytes: usize) -> Result<RWTime> {
     let mut buffer: mymem::RustMymem = mymem::RustMymem;
 
-    let mut total_wrt_time: u64 = 0;
-    let mut total_rd_time: u64 = 0;
+    let mut total_wrt_time: u64;
+    let mut total_rd_time: u64;
     const TRIALS: u64 = 1000;
     for _ in 0..TRIALS {
         // generate random buffer, to ensure no caching between trials
@@ -123,11 +123,13 @@ fn time_to_read_write(num_bytes: usize) -> Result<RWTime> {
         
         random::getrandom(&mut buf_to_wrt[..])?;
 
-        //let start = ProcessTime::try_now().expect("Getting process time failed");
+        let start: bindings::timespec64;
+        let end: bindings::timespec64;
+        unsafe { ktime_get_ts64(&mut start); }
         let n = buffer.write(&buf_to_wrt, 0);
+        unsafe { ktime_get_ts64(&mut end); }
         assert!(n == num_bytes);
-        //let cpu_time: Duration = start.try_elapsed().expect("Getting process time failed");
-        //println!("{:?}\t{:?}\t{:?}", cpu_time, cpu_time.as_secs(), cpu_time.subsec_micros());
+        pr_info!("{:?}\t{:?}", end.tv_sec - start.tv_sec, end.tv_nsec - start.tv_nsec);
         //total_wrt_time += cpu_time.subsec_micros() as u64;
 
 
