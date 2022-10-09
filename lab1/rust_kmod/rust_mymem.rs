@@ -35,7 +35,6 @@ impl kernel::Module for RustMymem {
 
 impl Drop for RustMymem {
     fn drop(&mut self) {
-        pr_info!("rust_mymem (exit)\n");
     }
 }
 
