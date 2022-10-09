@@ -29,7 +29,7 @@ fn get_counter(f: &mut File) -> Result<u64> {
 }
 
 fn create_workers(w: i64, n: i64) -> Result<()> {
-    let file = File::options().read(true).write(true).open("/dev/mymem")?;
+    let mut buffer: mymem::RustMymem = mymem::RustMymem;
     let file = Arc::new(Mutex::new(file));
 
     let mut children = vec![];
@@ -154,7 +154,7 @@ fn main () -> Result<()>{
         const SIZES: [usize; NUM_SIZES] = [1, 64, 1024, 64*1024, 512*1024];
         for i in 0..NUM_SIZES {
             if let Ok(time) = time_to_read_write(SIZES[i]) {
-                pr_info!("{:?}\t{:?}", time.read, time.write);
+                pr_info!("{:?}\t{:?}\t{:?}", num_bytes, time.read, time.write);
             } else {
                 pr_info!("failed!")
             }
