@@ -1,5 +1,5 @@
 use mymem;
-//use kernel::bindings;
+use kernel::bindings;
 use kernel::prelude::*;
 use kernel::{
     //file::{self, File},
@@ -125,9 +125,9 @@ fn time_to_read_write(num_bytes: usize) -> Result<RWTime> {
 
         let start: bindings::timespec64;
         let end: bindings::timespec64;
-        unsafe { ktime_get_ts64(&mut start); }
+        unsafe { bindings::ktime_get_ts64(&mut start); }
         let n = buffer.write(&buf_to_wrt, 0);
-        unsafe { ktime_get_ts64(&mut end); }
+        unsafe { bindings::ktime_get_ts64(&mut end); }
         assert!(n == num_bytes);
         pr_info!("{:?}\t{:?}", end.tv_sec - start.tv_sec, end.tv_nsec - start.tv_nsec);
         //total_wrt_time += cpu_time.subsec_micros() as u64;
