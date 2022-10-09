@@ -47,16 +47,16 @@ impl RustMymem {
         let buffer_p = &BUFFER.lock();
 
         let mut num_bytes: usize = outbuf.len();
-        let max_bytes: usize = buffer.len() - offset;
+        let max_bytes: usize = *buffer_p.len() - offset;
         if max_bytes < num_bytes {
             num_bytes = max_bytes; 
         }
 
         if num_bytes + offset > BUFFER_SIZE {
-            return Err(EINVAL);
+            return EINVAL;
         }
         // Write starting from offset
-        outbuf[..].clone_from_slice(&(*buffer_p[offset..][..num_bytes]))
+        outbuf[..].clone_from_slice(buffer_p[offset..][..num_bytes]);
 
         num_bytes
     }
@@ -69,10 +69,10 @@ impl RustMymem {
         let num_bytes: usize = inbuf.len();
 
         if num_bytes + offset > BUFFER_SIZE {
-            return Err(EINVAL);
+            return EINVAL;
         }
 
-        (*buffer_p[offset..][..num_bytes]).clone_from_slice(&inbuf);
+        (buffer_p[offset..][..num_bytes]).clone_from_slice(&inbuf);
 
         num_bytes 
     }
