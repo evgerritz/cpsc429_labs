@@ -29,7 +29,6 @@ impl kernel::Module for RustMymem {
     fn init(_name: &'static CStr, _module: &'static ThisModule) -> Result<Self> {
         pr_info!("rust_mymem (init)\n");
 
-        pr_info!("buffer len: {:?}", buffer_p.len());
         Ok(RustMymem)
     }
 }
@@ -53,7 +52,7 @@ impl RustMymem {
         }
 
         if num_bytes + offset > BUFFER_SIZE {
-            return EINVAL;
+            return EINVAL as usize;
         }
         // Write starting from offset
         outbuf[..].clone_from_slice(buffer_p[offset..][..num_bytes]);
@@ -69,7 +68,7 @@ impl RustMymem {
         let num_bytes: usize = inbuf.len();
 
         if num_bytes + offset > BUFFER_SIZE {
-            return EINVAL;
+            return EINVAL as usize;
         }
 
         (buffer_p[offset..][..num_bytes]).clone_from_slice(&inbuf);
