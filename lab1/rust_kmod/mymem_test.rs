@@ -104,7 +104,7 @@ fn time_to_read_write(num_bytes: usize) -> Result<RWTime> {
 
     let mut total_wrt_time: u64 = 0;
     let mut total_rd_time: u64 = 0;
-    const TRIALS: u64 = 1000;
+    const TRIALS: u64 = 1024;
     for _ in 0..TRIALS {
         // generate random buffer, to ensure no caching between trials
         let mut buf_to_wrt: Vec<u8> = Vec::try_with_capacity(num_bytes)?;
@@ -119,25 +119,25 @@ fn time_to_read_write(num_bytes: usize) -> Result<RWTime> {
         unsafe { bindings::ktime_get_ts64(&mut start); }
         let n = buffer.write(&buf_to_wrt, 0);
         unsafe { bindings::ktime_get_ts64(&mut end); }
-        pr_info!("{:?}\t{:?}\t{:?}\t{:?}", n, num_bytes,  end.tv_sec - start.tv_sec, end.tv_nsec - start.tv_nsec);
-        //assert!(n == num_bytes);
-        //total_wrt_time += cpu_time.subsec_micros() as u64;
+        assert!(n == num_bytes);
+        assert!(end.tv_sec - start.tv_sec == 0)
+        total_wrt_time += (end.tv_nsec - start.tv_nsec);
 
         unsafe { bindings::ktime_get_ts64(&mut start); }
         let n = buffer.read(&mut buf_to_rd, 0);
         unsafe { bindings::ktime_get_ts64(&mut end); }
-        pr_info!("{:?}\t{:?}\t{:?}\t{:?}", n, num_bytes,  end.tv_sec - start.tv_sec, end.tv_nsec - start.tv_nsec);
-        //assert!(n == num_bytes);
-        //total_rd_time += cpu_time2.subsec_micros() as u64;
+        assert!(n == num_bytes);
+        assert!(end.tv_sec - start.tv_sec == 0)
+        total_rd_time += cpu_time2.subsec_micros() as u64;
 
-        //for i in 0..num_bytes {
-        //    assert!(buf_to_wrt[i] == buf_to_rd[i]);
-        //}
+        for i in 0..num_bytes {
+            assert!(buf_to_wrt[i] == buf_to_rd[i]);
+        }
     }
 
     Ok(RWTime {
-        read: 0, //total_rd_time / TRIALS ,
-        write: 0 //total_wrt_time / TRIALS ,
+        read: total_rd_time >> 10,
+        write: total_wrt_time >> 10
     })
 }
 
