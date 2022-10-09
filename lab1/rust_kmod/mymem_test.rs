@@ -1,3 +1,5 @@
+//! test program for mymem rust module written as kernel module
+
 use mymem;
 use kernel::bindings;
 use kernel::prelude::*;
@@ -128,8 +130,9 @@ fn time_to_read_write(num_bytes: usize) -> Result<RWTime> {
         unsafe { bindings::ktime_get_ts64(&mut start); }
         let n = buffer.write(&buf_to_wrt, 0);
         unsafe { bindings::ktime_get_ts64(&mut end); }
-        assert!(n == num_bytes);
         pr_info!("{:?}\t{:?}", end.tv_sec - start.tv_sec, end.tv_nsec - start.tv_nsec);
+        /*
+        assert!(n == num_bytes);
         //total_wrt_time += cpu_time.subsec_micros() as u64;
 
 
@@ -143,6 +146,7 @@ fn time_to_read_write(num_bytes: usize) -> Result<RWTime> {
         for i in 0..num_bytes {
             assert!(buf_to_wrt[i] == buf_to_rd[i]);
         }
+        */
     }
 
     Ok(RWTime {
