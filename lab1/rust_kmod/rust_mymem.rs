@@ -29,8 +29,6 @@ impl kernel::Module for RustMymem {
     fn init(_name: &'static CStr, _module: &'static ThisModule) -> Result<Self> {
         pr_info!("rust_mymem (init)\n");
 
-        let buffer_p = &BUFFER.lock();
-
         pr_info!("buffer len: {:?}", buffer_p.len());
         Ok(RustMymem)
     }
@@ -45,50 +43,38 @@ impl Drop for RustMymem {
 
 impl RustMymem {
     /// reads into the buffer, starting at offset
-    pub fn read( &mut self, _outbuf: &mut [u8], _offset: usize ) -> usize {
-        pr_info!("rust_mymem (read)");
-        /*if data.is_empty() {
-            return Ok(0);
-        }
+    pub fn read( &mut self, outbuf: &mut [u8], offset: usize ) -> usize {
+        let buffer_p = &BUFFER.lock();
 
-        let mut num_bytes: usize = data.len();
-        let max_bytes: usize = buffer.len() - *offset_p;
+        let mut num_bytes: usize = outbuf.len();
+        let max_bytes: usize = buffer.len() - offset;
         if max_bytes < num_bytes {
             num_bytes = max_bytes; 
         }
 
-        if num_bytes + *offset_p > BUFFER_SIZE {
+        if num_bytes + offset > BUFFER_SIZE {
             return Err(EINVAL);
         }
         // Write starting from offset
-        data.write_slice(&buffer[*offset_p..][..num_bytes])?;
+        outbuf[..].clone_from_slice(&(*buffer_p[offset..][..num_bytes]))
 
-        *offset_p += num_bytes; */
-
-        0
+        num_bytes
     }
 
     /// writes to the buffer, starting at offset
-    pub fn write( &mut self, _inbuf: &[u8], _offset: usize ) -> usize {
-        pr_info!("rust_mymem (write)");
-        0
-        /*if data.is_empty() {
-            return Ok(0);
-        }
+    pub fn write( &mut self, inbuf: &[u8], offset: usize ) -> usize {
 
-        let mut buffer = shared.buffer.lock();
-        let mut offset_p = shared.pos.lock();
+        let mut buffer_p = &BUFFER.lock();
 
-        let num_bytes: usize = data.len();
+        let num_bytes: usize = inbuf.len();
 
-        let new_len = num_bytes + *offset_p;
-        if new_len > BUFFER_SIZE {
+        if num_bytes + offset > BUFFER_SIZE {
             return Err(EINVAL);
         }
 
-        data.read_slice(&mut buffer[*offset_p..][..num_bytes])?;
-        *offset_p += num_bytes;
-        Ok(num_bytes) */
+        (*buffer_p[offset..][..num_bytes]).clone_from_slice(&inbuf);
+
+        num_bytes 
     }
 }
 

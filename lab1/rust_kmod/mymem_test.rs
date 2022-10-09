@@ -87,27 +87,14 @@ fn interpret_results(w: i64, n:i64, average_counter: u64) {
     }
 }
 */
-/*
-unsafe impl AlwaysRefCounted for File {
-    fn inc_ref(&self) {
-        // SAFETY: The existence of a shared reference means that the refcount is nonzero.
-        unsafe { bindings::get_file(self.0.get()) };
-    }
-
-    unsafe fn dec_ref(obj: ptr::NonNull<Self>) {
-        // SAFETY: The safety requirements guarantee that the refcount is nonzero.
-        unsafe { bindings::fput(obj.cast().as_ptr()) }
-    }
-}
-*/
 
 
 
 // struct to hold both the avg read and write times in microseconds
 // for each number of bytes
 struct RWTime {
-    read: f64,
-    write: f64 
+    read: u64,
+    write: u64 
 }
 
 // gets time measurements for reads/writes of size num_bytes and
@@ -131,27 +118,25 @@ fn time_to_read_write(num_bytes: usize) -> Result<RWTime> {
         let n = buffer.write(&buf_to_wrt, 0);
         unsafe { bindings::ktime_get_ts64(&mut end); }
         pr_info!("{:?}\t{:?}", end.tv_sec - start.tv_sec, end.tv_nsec - start.tv_nsec);
-        /*
         assert!(n == num_bytes);
         //total_wrt_time += cpu_time.subsec_micros() as u64;
 
 
-        //let start2 = ProcessTime::try_now().expect("Getting process time failed");
+        unsafe { bindings::ktime_get_ts64(&mut start); }
         let n = buffer.read(&mut buf_to_rd, 0);
+        unsafe { bindings::ktime_get_ts64(&mut end); }
+        pr_info!("{:?}\t{:?}", end.tv_sec - start.tv_sec, end.tv_nsec - start.tv_nsec);
         assert!(n == num_bytes);
-        //let cpu_time2: Duration = start2.try_elapsed().expect("Getting process time failed");
-        //println!("{:?}\t{:?}\t{:?}", cpu_time2, cpu_time2.as_secs(), cpu_time2.subsec_micros());
         //total_rd_time += cpu_time2.subsec_micros() as u64;
 
         for i in 0..num_bytes {
             assert!(buf_to_wrt[i] == buf_to_rd[i]);
         }
-        */
     }
 
     Ok(RWTime {
-        read: total_rd_time as f64 / TRIALS as f64 ,
-        write: total_wrt_time as f64 / TRIALS as f64 ,
+        read: total_rd_time / TRIALS ,
+        write: total_wrt_time / TRIALS ,
     })
 }
 
