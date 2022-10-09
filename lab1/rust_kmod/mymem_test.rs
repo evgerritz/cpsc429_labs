@@ -100,7 +100,7 @@ struct RWTime {
 // gets time measurements for reads/writes of size num_bytes and
 // fills out an rw_time struct
 fn time_to_read_write(num_bytes: usize) -> Result<RWTime> {
-    let mut buffer: mymem::RustMymem = mymem::RustMymem;
+    let buffer: mymem::RustMymem = mymem::RustMymem;
 
     let mut total_wrt_time: u64 = 0;
     let mut total_rd_time: u64 = 0;
@@ -154,7 +154,7 @@ fn main () -> Result<()>{
         const SIZES: [usize; NUM_SIZES] = [1, 64, 1024, 64*1024, 512*1024];
         for i in 0..NUM_SIZES {
             if let Ok(time) = time_to_read_write(SIZES[i]) {
-                pr_info!("{:?}\t{:?}\t{:?}", num_bytes, time.read, time.write);
+                pr_info!("{:?}\t{:?}\t{:?}", SIZES[i], time.read, time.write);
             } else {
                 pr_info!("failed!")
             }
