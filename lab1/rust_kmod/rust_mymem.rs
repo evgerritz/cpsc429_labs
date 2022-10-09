@@ -43,10 +43,10 @@ impl Drop for RustMymem {
 impl RustMymem {
     /// reads into the buffer, starting at offset
     pub fn read( &mut self, outbuf: &mut [u8], offset: usize ) -> usize {
-        let buffer_p = &BUFFER.lock();
+        let buffer = &BUFFER.lock();
 
         let mut num_bytes: usize = outbuf.len();
-        let max_bytes: usize = *buffer_p.len() - offset;
+        let max_bytes: usize = buffer.len() - offset;
         if max_bytes < num_bytes {
             num_bytes = max_bytes; 
         }
@@ -55,7 +55,7 @@ impl RustMymem {
             return EINVAL.to_kernel_errno() as usize;
         }
         // Write starting from offset
-        outbuf[..].clone_from_slice(buffer_p[offset..][..num_bytes]);
+        outbuf[..].clone_from_slice(buffer[offset..][..num_bytes]);
 
         num_bytes
     }
@@ -63,7 +63,7 @@ impl RustMymem {
     /// writes to the buffer, starting at offset
     pub fn write( &mut self, inbuf: &[u8], offset: usize ) -> usize {
 
-        let mut buffer_p = &BUFFER.lock();
+        let mut buffer = &BUFFER.lock();
 
         let num_bytes: usize = inbuf.len();
 
@@ -71,7 +71,7 @@ impl RustMymem {
             return EINVAL.to_kernel_errno() as usize;
         }
 
-        (buffer_p[offset..][..num_bytes]).clone_from_slice(&inbuf);
+        (buffer[offset..][..num_bytes]).clone_from_slice(&inbuf);
 
         num_bytes 
     }
