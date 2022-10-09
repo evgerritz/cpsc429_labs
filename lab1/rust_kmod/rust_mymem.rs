@@ -52,7 +52,7 @@ impl RustMymem {
         }
 
         if num_bytes + offset > BUFFER_SIZE {
-            return EINVAL as usize;
+            return EINVAL.to_kernel_errno() as usize;
         }
         // Write starting from offset
         outbuf[..].clone_from_slice(buffer_p[offset..][..num_bytes]);
@@ -68,7 +68,7 @@ impl RustMymem {
         let num_bytes: usize = inbuf.len();
 
         if num_bytes + offset > BUFFER_SIZE {
-            return EINVAL as usize;
+            return EINVAL.to_kernel_errno() as usize;
         }
 
         (buffer_p[offset..][..num_bytes]).clone_from_slice(&inbuf);
