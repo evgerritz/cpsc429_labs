@@ -152,7 +152,7 @@ fn main () -> Result<()>{
         // initialize array of sizes in bytes of the operations
         const NUM_SIZES: usize = 5;
         const SIZES: [usize; NUM_SIZES] = [1, 64, 1024, 64*1024, 512*1024];
-        for i in 0..=NUM_SIZES {
+        for i in 0..NUM_SIZES {
             if let Ok(time) = time_to_read_write(SIZES[i]) {
                 pr_info!("{:?}\t{:?}\t{:?}", SIZES[i], time.read, time.write);
             } else {
