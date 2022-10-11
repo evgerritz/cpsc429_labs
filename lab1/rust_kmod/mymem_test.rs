@@ -13,7 +13,7 @@ const W: i64 = 10;
 const N: i64 = 10;
 
 kernel::init_static_sync! {
-    static REMAINING_THREADS: Mutex<u32> = 0;
+    static REMAINING_THREADS: Mutex<i64> = 0;
     static ALL_EXITED: CondVar;
 }
 
@@ -58,7 +58,7 @@ fn create_workers(w: i64, n: i64) -> Result<()> {
     }
 
     let mut count = REMAINING_THREADS.lock();
-    while (*count != 0) {
+    while *count != 0 {
         ALL_EXITED.wait(&mut count);
     }
     Ok(())
