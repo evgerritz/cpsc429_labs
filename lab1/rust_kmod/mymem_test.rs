@@ -34,15 +34,15 @@ fn get_counter(buf: &mut mymem::RustMymem) -> Result<u64> {
 }
 
 fn create_workers(w: i64, n: i64) -> Result<()> {
-    let buffer: mymem::RustMymem = mymem::RustMymem;
-    let buffer = Ref::try_new(buffer);
+    let mut buffer: mymem::RustMymem = mymem::RustMymem;
+    let mut buffer = Ref::try_new(buffer);
     //let buffer = Ref::try_new(Mutex::new(buffer));
 
     let mut children = Vec::new();
     *REMAINING_THREADS.lock() = W;
     // start w threads
     for _ in 0..w {
-        let buffer = buffer.clone()?;
+        let mut buffer = buffer.clone()?;
         children.try_push(Task::spawn(fmt!(""), move || {
             for _ in 0..n {
                 let current_val: u64;
