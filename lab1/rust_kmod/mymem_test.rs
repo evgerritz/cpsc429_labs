@@ -4,10 +4,8 @@ use mymem;
 use kernel::bindings;
 use kernel::prelude::*;
 use kernel::{
-    sync::smutex::Mutex,
+    sync::{smutex::Mutex, Ref}
     random,
-    ARef,
-    ARef::clone,
     task::Task,
 };
 
@@ -31,7 +29,7 @@ fn get_counter(buf: &mut mymem::RustMymem) -> Result<u64> {
 
 fn create_workers(w: i64, n: i64) -> Result<()> {
     let mut buffer: mymem::RustMymem = mymem::RustMymem;
-    let buffer = ARef::from_raw(Mutex::new(buffer).as_ptr());
+    let buffer = Ref::try_new(Mutex::new(buffer).as_ptr());
 
     let mut children = Vec::new();
 
