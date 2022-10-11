@@ -38,7 +38,7 @@ fn create_workers(w: i64, n: i64) -> Result<()> {
     for _ in 0..w {
         let buffer = buffer.clone();
 
-        children.try_push(Task::spawn("", move || -> Result<()> {
+        children.try_push(Task::spawn(fmt!(""), move || -> Result<()> {
             // each thread performs the following atomic action n times
             for _ in 0..n {
                 let current_val: u64;
@@ -47,13 +47,13 @@ fn create_workers(w: i64, n: i64) -> Result<()> {
                 set_counter(&mut buffer, current_val+1)?;
             }
             Ok(())
-        }))?;
+        })?)?;
     }
 
-    for child in children {
+    /*for child in children {
         // Wait for the thread to finish. Returns a result.
         child.join().unwrap()?;
-    }
+    }*/
     Ok(())
 }
 
