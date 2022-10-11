@@ -45,20 +45,6 @@ fn create_workers(w: i64, n: i64) -> Result<()> {
         }
     })?)?;
 
-<<<<<<< HEAD
-=======
-        children.try_push(Task::spawn(fmt!(""), move || -> () {
-            // each thread performs the following atomic action n times
-            for _ in 0..n {
-                let current_val: u64;
-                let mut buffer = buffer.lock().unwrap();
-                current_val = get_counter(&mut buffer).unwrap();
-                set_counter(&mut buffer, current_val+1).unwrap();
-            }
-        })?)?;
-    }
->>>>>>> 2aad548 (fixed thread spawn type issue)
-
     /*for child in children {
         // Wait for the thread to finish. Returns a result.
         child.join().unwrap()?;
