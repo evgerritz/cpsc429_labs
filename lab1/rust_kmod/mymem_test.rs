@@ -7,6 +7,7 @@ use kernel::{
     sync::smutex::Mutex,
     random,
     ARef,
+    ARef::clone,
     task::Task,
 };
 
@@ -16,21 +17,21 @@ static INIT_VAL: u64 = 0xDEADBEEF;
 const NUM_BYTES: usize = 8;
 
 fn set_counter(buf: &mut mymem::RustMymem, value: u64) -> Result<()> {
-    let n = buf.write(&value.to_be_bytes(), 0)?; 
+    let n = buf.write(&value.to_be_bytes(), 0); 
     assert!(n == NUM_BYTES);
     Ok(())
 }
 
 fn get_counter(buf: &mut mymem::RustMymem) -> Result<u64> {
     let mut buf_to_rd: [u8; NUM_BYTES] = [0u8; NUM_BYTES];
-    let n = buf.read(&mut buf_to_rd, 0)?;
+    let n = buf.read(&mut buf_to_rd, 0);
     assert!(n == NUM_BYTES);
     Ok(u64::from_be_bytes(buf_to_rd))
 }
 
 fn create_workers(w: i64, n: i64) -> Result<()> {
     let mut buffer: mymem::RustMymem = mymem::RustMymem;
-    let buffer = ARef::from(Mutex::new(buffer));
+    let buffer = ARef::from_raw(Mutex::new(buffer).as_ptr());
 
     let mut children = Vec::new();
 
