@@ -4,7 +4,7 @@ use mymem;
 use kernel::bindings;
 use kernel::prelude::*;
 use kernel::{
-    sync::{smutex::Mutex, Ref}
+    sync::{smutex::Mutex, Ref},
     random,
     task::Task,
 };
@@ -35,7 +35,7 @@ fn create_workers(w: i64, n: i64) -> Result<()> {
 
     // start w threads
     for _ in 0..W {
-        let buffer = BUFFER.clone();
+        let buffer = buffer.clone();
         children.try_push(Task::spawn(fmt!(""), move || {
             for _ in 0..N {
                 let current_val: u64;
