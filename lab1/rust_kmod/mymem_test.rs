@@ -35,15 +35,16 @@ fn create_workers(w: i64, n: i64) -> Result<()> {
 
     // start w threads
     for _ in 0..W {
-    let buffer = BUFFER.clone();
-    children.try_push(Task::spawn(fmt!(""), move || {
-        for _ in 0..N {
-            let current_val: u64;
-            let buffer = &mut buffer.lock();
-            current_val = get_counter(&mut buffer).unwrap();
-            set_counter(&mut buffer, current_val+1).unwrap();
-        }
-    })?)?;
+        let buffer = BUFFER.clone();
+        children.try_push(Task::spawn(fmt!(""), move || {
+            for _ in 0..N {
+                let current_val: u64;
+                let buffer = &mut buffer.lock();
+                current_val = get_counter(&mut buffer).unwrap();
+                set_counter(&mut buffer, current_val+1).unwrap();
+            }
+        })?)?;
+    }
 
     /*for child in children {
         // Wait for the thread to finish. Returns a result.
