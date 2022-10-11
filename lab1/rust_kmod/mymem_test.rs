@@ -29,14 +29,14 @@ fn get_counter(buf: &mut mymem::RustMymem) -> Result<u64> {
 static MYMEM: mymem::RustMymem = mymem::RustMymem;
 static BUFFER: Ref<Mutex<mymem::RustMymem>> = Ref::try_new(Mutex::new(MYMEM)).unwrap();
 
-fn do_work() -> Result<()> {
+fn do_work() -> () {
     // each thread performs the following atomic action n times
     let buffer = BUFFER.clone();
     for _ in 0..N {
         let current_val: u64;
         let buffer = &mut buffer.lock();
-        current_val = get_counter(&mut buffer)?;
-        set_counter(&mut buffer, current_val+1)?;
+        current_val = get_counter(&mut buffer).unwrap();
+        set_counter(&mut buffer, current_val+1).unwrap();
     }
     Ok(())
 }
