@@ -9,8 +9,8 @@ use kernel::{
     task::Task,
 };
 
-const W: i64 = 10;
-const N: i64 = 10;
+const W: i64 = 50;
+const N: i64 = 150000;
 
 kernel::init_static_sync! {
     static REMAINING_THREADS: Mutex<i64> = 0;
