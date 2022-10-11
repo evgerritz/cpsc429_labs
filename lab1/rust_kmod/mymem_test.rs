@@ -26,20 +26,20 @@ fn get_counter(buf: &mut mymem::RustMymem) -> Result<u64> {
     assert!(n == NUM_BYTES);
     Ok(u64::from_be_bytes(buf_to_rd))
 }
-static mut BUFFER: mymem::RustMymem = mymem::RustMymem;
-static BUFFER = Ref::try_new(Mutex::new(BUFFER))?;
+static MYMEM: mymem::RustMymem = mymem::RustMymem;
+static BUFFER = Ref::try_new(Mutex::new(MYMEM)).unwrap();
 
 fn create_workers() -> Result<()> {
 
     let mut children = Vec::new();
 
     // start w threads
-    for _ in 0..w {
+    for _ in 0..W {
         let buffer = buffer.clone();
 
         children.try_push(Task::spawn(fmt!(""), move || -> Result<()> {
             // each thread performs the following atomic action n times
-            for _ in 0..n {
+            for _ in 0..N {
                 let current_val: u64;
                 let buffer = &mut BUFFER.lock();
                 current_val = get_counter(&mut buffer)?;
