@@ -59,7 +59,7 @@ fn create_workers(w: i64, n: i64) -> Result<()> {
 
     let mut count = REMAINING_THREADS.lock();
     while *count != 0 {
-        ALL_EXITED.wait(&mut count);
+        let _ = ALL_EXITED.wait(&mut count);
     }
     Ok(())
 }
@@ -141,14 +141,14 @@ fn time_to_read_write(num_bytes: usize) -> Result<RWTime> {
 // while we are loading this code as a module, it really is just a program;
 // this main function makes that idea explicit.
 fn main () -> Result<()>{
-    let run_timing = false;
+    let run_timing = true;
     if run_timing {
         // initialize array of sizes in bytes of the operations
         const NUM_SIZES: usize = 5;
         const SIZES: [usize; NUM_SIZES] = [1, 64, 1024, 64*1024, 512*1024];
         for i in 0..NUM_SIZES {
             if let Ok(time) = time_to_read_write(SIZES[i]) {
-                pr_info!("{:?}\t{:?}\t{:?}", SIZES[i], time.read, time.write);
+                pr_info!("{:?}\t\t:{:?}\t{:?}", SIZES[i], time.read, time.write);
             } else {
                 pr_info!("failed!")
             }
