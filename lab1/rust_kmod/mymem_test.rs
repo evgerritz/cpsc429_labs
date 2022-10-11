@@ -28,7 +28,7 @@ fn get_counter(buf: &mut mymem::RustMymem) -> Result<u64> {
 }
 
 fn create_workers(w: i64, n: i64) -> Result<()> {
-    let mut buffer: mymem::RustMymem = mymem::RustMymem;
+    let buffer: mymem::RustMymem = mymem::RustMymem;
     let buffer = Ref::try_new(Mutex::new(buffer));
 
     let mut children = Vec::new();
@@ -133,7 +133,7 @@ const N: i64 = 10;
 // while we are loading this code as a module, it really is just a program;
 // this main function makes that idea explicit.
 fn main () -> Result<()>{
-    let run_timing = true;
+    let run_timing = false;
     if run_timing {
         // initialize array of sizes in bytes of the operations
         const NUM_SIZES: usize = 5;
@@ -147,7 +147,7 @@ fn main () -> Result<()>{
         }
     }
 
-    let run_threads = false;
+    let run_threads = true;
     if run_threads {
 
         let num_trials: u64 = 3;
