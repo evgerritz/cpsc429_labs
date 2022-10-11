@@ -55,9 +55,9 @@ fn create_workers(w: i64, n: i64) -> Result<()> {
 
 
 fn avg_counter_after_trials(w: i64, n: i64, num_trials: u64) -> Result<u64>{
+    let mut buffer: mymem::RustMymem = mymem::RustMymem;
     let mut counter_total: u64 = 0;
     for _ in 0..num_trials {
-        let buffer = &mut BUFFER.lock();
         set_counter(&mut buffer, INIT_VAL)?;
         create_workers(w, n)?;
         counter_total += get_counter(&mut buffer)?;
