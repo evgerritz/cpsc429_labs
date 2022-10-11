@@ -4,12 +4,18 @@ use mymem;
 use kernel::bindings;
 use kernel::prelude::*;
 use kernel::{
-    sync::{smutex::Mutex, Ref},
+    sync::{smutex::Mutex, Ref, CondVar},
     random,
     task::Task,
 };
 
+const W: i64 = 10;
+const N: i64 = 10;
 
+kernel::init_static_sync! {
+    static REMAINING_THREADS: Mutex<u32> = 0;
+    static ALL_EXITED: CondVar;
+}
 
 static INIT_VAL: u64 = 0xDEADBEEF;
 const NUM_BYTES: usize = 8;
@@ -32,7 +38,7 @@ fn create_workers(w: i64, n: i64) -> Result<()> {
     let buffer = Ref::try_new(Mutex::new(buffer));
 
     let mut children = Vec::new();
-
+    *REMAINING_THREADS.lock() = W;
     // start w threads
     for _ in 0..w {
         let buffer = buffer.clone()?;
@@ -43,13 +49,18 @@ fn create_workers(w: i64, n: i64) -> Result<()> {
                 current_val = get_counter(&mut buffer).unwrap();
                 set_counter(&mut buffer, current_val+1).unwrap();
             }
+            let mut count = REMAINING_THREADS.lock();
+            *count -= 1;
+            if *count == 0 {
+                ALL_EXITED.notify_all();
+            }
         })?)?;
     }
 
-    /*for child in children {
-        // Wait for the thread to finish. Returns a result.
-        child.join().unwrap()?;
-    }*/
+    let mut count = REMAINING_THREADS.lock();
+    while (*count != 0) {
+        ALL_EXITED.wait(&mut count);
+    }
     Ok(())
 }
 
@@ -126,9 +137,6 @@ fn time_to_read_write(num_bytes: usize) -> Result<RWTime> {
         write: total_wrt_time >> 10
     })
 }
-
-const W: i64 = 10;
-const N: i64 = 10;
 
 // while we are loading this code as a module, it really is just a program;
 // this main function makes that idea explicit.
