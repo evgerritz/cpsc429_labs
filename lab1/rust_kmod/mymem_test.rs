@@ -38,7 +38,6 @@ fn do_work() -> () {
         current_val = get_counter(&mut buffer).unwrap();
         set_counter(&mut buffer, current_val+1).unwrap();
     }
-    Ok(())
 }
 
 fn create_workers() -> Result<()> {
