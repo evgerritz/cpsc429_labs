@@ -1,0 +1,14 @@
+modules.order
+Module.symvers
+mymem.ko
+mymem.mod
+mymem.mod.c
+mymem.mod.o
+mymem.o
+threads.o
+threads
+test.o
+test
+test_mymem/target
+threads_rust/target
+.mymem*
