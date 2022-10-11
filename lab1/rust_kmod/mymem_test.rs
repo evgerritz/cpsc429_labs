@@ -34,12 +34,12 @@ fn create_workers(w: i64, n: i64) -> Result<()> {
     let mut children = Vec::new();
 
     // start w threads
-    for _ in 0..W {
+    for _ in 0..w {
         let buffer = buffer.clone()?;
         children.try_push(Task::spawn(fmt!(""), move || {
-            for _ in 0..N {
+            for _ in 0..n {
                 let current_val: u64;
-                let buffer = &mut buffer.lock();
+                let mut buffer = &mut *buffer.lock();
                 current_val = get_counter(&mut buffer).unwrap();
                 set_counter(&mut buffer, current_val+1).unwrap();
             }
