@@ -29,7 +29,7 @@ fn get_counter(buf: &mut mymem::RustMymem) -> Result<u64> {
 
 fn create_workers(w: i64, n: i64) -> Result<()> {
     let mut buffer: mymem::RustMymem = mymem::RustMymem;
-    let buffer = Ref::try_new(Mutex::new(buffer).as_ptr());
+    let buffer = Ref::try_new(Mutex::new(buffer));
 
     let mut children = Vec::new();
 
@@ -59,7 +59,7 @@ fn avg_counter_after_trials(w: i64, n: i64, num_trials: u64) -> Result<u64>{
     for _ in 0..num_trials {
         let buffer = &mut BUFFER.lock();
         set_counter(&mut buffer, INIT_VAL)?;
-        create_workers()?;
+        create_workers(w, n)?;
         counter_total += get_counter(&mut buffer)?;
     }
     Ok(counter_total / num_trials)
