@@ -4,24 +4,24 @@ use mymem;
 use kernel::bindings;
 use kernel::prelude::*;
 use kernel::{
-    //file::{self, File},
-    //sync::{smutex::Mutex}, Ref, RefBorrow},
+    sync::smutex::Mutex
     random,
+    ARef,
+    task::Task,
 };
 
 
 
-/*
 static INIT_VAL: u64 = 0xDEADBEEF;
 const NUM_BYTES: usize = 8;
 
-fn set_counter(f: &mut File, value: u64) -> Result<()> {
+fn set_counter(buf: &mut mymem::RustMymem, value: u64) -> Result<()> {
     let n = f.write(&value.to_be_bytes(), 0)?; 
     assert!(n == NUM_BYTES);
     Ok(())
 }
 
-fn get_counter(f: &mut File) -> Result<u64> {
+fn get_counter(buf: &mut mymem::RustMymem) -> Result<u64> {
     let mut buf_to_rd: [u8; NUM_BYTES] = [0u8; NUM_BYTES];
     let n = f.read(&mut buf_to_rd, 0)?;
     assert!(n == NUM_BYTES);
@@ -30,24 +30,24 @@ fn get_counter(f: &mut File) -> Result<u64> {
 
 fn create_workers(w: i64, n: i64) -> Result<()> {
     let mut buffer: mymem::RustMymem = mymem::RustMymem;
-    let file = Arc::new(Mutex::new(file));
+    let buffer = ARef::from_raw(Mutex::new(buffer));
 
-    let mut children = vec![];
+    let mut children = Vec::new();
 
     // start w threads
     for _ in 0..w {
-        let file = Arc::clone(&file);
+        let buffer = buffer.clone();
 
-        children.push(thread::spawn(move || -> Result<()> {
+        children.try_push(Task::spawn("", move || -> Result<()> {
             // each thread performs the following atomic action n times
             for _ in 0..n {
                 let current_val: u64;
-                let mut file = file.lock().unwrap();
-                current_val = get_counter(&mut file)?;
-                set_counter(&mut file, current_val+1)?;
+                let mut buffer = buffer.lock().unwrap();
+                current_val = get_counter(&mut buffer)?;
+                set_counter(&mut buffer, current_val+1)?;
             }
             Ok(())
-        }));
+        }))?;
     }
 
     for child in children {
@@ -58,21 +58,13 @@ fn create_workers(w: i64, n: i64) -> Result<()> {
 }
 
 
-fn percent_error(actual: f64, expected: f64) -> f64 {
-    let mut q: f64 = (actual - expected) / expected;
-    if q < 0 {
-        q *= -1;
-    }
-    q*100f64 
-}
-
 fn avg_counter_after_trials(w: i64, n: i64, num_trials: u64) -> Result<u64>{
-    let mut file = File::options().read(true).write(true).open("/dev/mymem")?;
+    let mut buffer: mymem::RustMymem = mymem::RustMymem;
     let mut counter_total: u64 = 0;
     for _ in 0..num_trials {
-        set_counter(&mut file, INIT_VAL)?;
+        set_counter(&mut buffer, INIT_VAL)?;
         create_workers(w, n)?;
-        counter_total += get_counter(&mut file)?;
+        counter_total += get_counter(&mut buffer)?;
     }
     Ok(counter_total / num_trials)
 }
@@ -81,12 +73,10 @@ fn interpret_results(w: i64, n:i64, average_counter: u64) {
     let correct: u64 = INIT_VAL + (n * w) as u64;
     if average_counter != correct {
         pr_info!("final: {:?}\tcorrect: {:?}\n", average_counter-INIT_VAL, correct-INIT_VAL);
-        pr_info!!("percent error: {:?}\n", percent_error(average_counter as f64, correct as f64));
     } else {
         pr_info!("Counter value correct!");
     }
 }
-*/
 
 
 
@@ -161,7 +151,6 @@ fn main () -> Result<()>{
         }
     }
 
-    /*
     let run_threads = false;
     if run_threads {
 
@@ -170,7 +159,6 @@ fn main () -> Result<()>{
 
         interpret_results(w, n, average_counter);
     }
-    */
     Ok(())
 }
 
