@@ -4,7 +4,7 @@ use mymem;
 use kernel::bindings;
 use kernel::prelude::*;
 use kernel::{
-    sync::{smutex::Mutex, Ref},
+    sync::{smutex::Mutex, Ref}
     random,
     task::Task,
 };
@@ -26,29 +26,25 @@ fn get_counter(buf: &mut mymem::RustMymem) -> Result<u64> {
     assert!(n == NUM_BYTES);
     Ok(u64::from_be_bytes(buf_to_rd))
 }
-static MYMEM: mymem::RustMymem = mymem::RustMymem;
-static BUFFER: Ref<Mutex<mymem::RustMymem>> = Ref::try_new(Mutex::new(MYMEM)).unwrap();
 
-fn do_work() -> () {
-    // each thread performs the following atomic action n times
-    let buffer = BUFFER.clone();
-    for _ in 0..N {
-        let current_val: u64;
-        let buffer = &mut buffer.lock();
-        current_val = get_counter(&mut buffer).unwrap();
-        set_counter(&mut buffer, current_val+1).unwrap();
-    }
-}
-
-fn create_workers() -> Result<()> {
+fn create_workers(w: i64, n: i64) -> Result<()> {
+    let mut buffer: mymem::RustMymem = mymem::RustMymem;
+    let buffer = Ref::try_new(Mutex::new(buffer).as_ptr());
 
     let mut children = Vec::new();
 
     // start w threads
     for _ in 0..W {
+    let buffer = BUFFER.clone();
+    children.try_push(Task::spawn(fmt!(""), move || {
+        for _ in 0..N {
+            let current_val: u64;
+            let buffer = &mut buffer.lock();
+            current_val = get_counter(&mut buffer).unwrap();
+            set_counter(&mut buffer, current_val+1).unwrap();
+        }
+    })?)?;
 
-        children.try_push(Task::spawn(fmt!(""), do_work)?)?;
-    }
 
     /*for child in children {
         // Wait for the thread to finish. Returns a result.
