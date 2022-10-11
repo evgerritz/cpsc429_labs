@@ -35,7 +35,7 @@ fn create_workers(w: i64, n: i64) -> Result<()> {
 
     // start w threads
     for _ in 0..W {
-        let buffer = buffer.clone();
+        let buffer = buffer.clone()?;
         children.try_push(Task::spawn(fmt!(""), move || {
             for _ in 0..N {
                 let current_val: u64;
