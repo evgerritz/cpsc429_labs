@@ -27,13 +27,14 @@ fn get_counter(buf: &mut mymem::RustMymem) -> Result<u64> {
     Ok(u64::from_be_bytes(buf_to_rd))
 }
 static MYMEM: mymem::RustMymem = mymem::RustMymem;
-static BUFFER = Ref::try_new(Mutex::new(MYMEM)).unwrap();
+static BUFFER: Ref<Mutex<mymem::RustMymem>> = Ref::try_new(Mutex::new(MYMEM)).unwrap();
 
 fn do_work() -> Result<()> {
     // each thread performs the following atomic action n times
+    let buffer = BUFFER.clone();
     for _ in 0..N {
         let current_val: u64;
-        let buffer = &mut BUFFER.lock();
+        let buffer = &mut buffer.lock();
         current_val = get_counter(&mut buffer)?;
         set_counter(&mut buffer, current_val+1)?;
     }
@@ -46,7 +47,6 @@ fn create_workers() -> Result<()> {
 
     // start w threads
     for _ in 0..W {
-        let BUFFER = BUFFER.clone();
 
         children.try_push(Task::spawn(fmt!(""), do_work)?)?;
     }
