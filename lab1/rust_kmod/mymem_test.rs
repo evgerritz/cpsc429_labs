@@ -29,24 +29,26 @@ fn get_counter(buf: &mut mymem::RustMymem) -> Result<u64> {
 static MYMEM: mymem::RustMymem = mymem::RustMymem;
 static BUFFER = Ref::try_new(Mutex::new(MYMEM)).unwrap();
 
+fn do_work() -> Result<()> {
+    // each thread performs the following atomic action n times
+    for _ in 0..N {
+        let current_val: u64;
+        let buffer = &mut BUFFER.lock();
+        current_val = get_counter(&mut buffer)?;
+        set_counter(&mut buffer, current_val+1)?;
+    }
+    Ok(())
+}
+
 fn create_workers() -> Result<()> {
 
     let mut children = Vec::new();
 
     // start w threads
     for _ in 0..W {
-        let buffer = buffer.clone();
+        let BUFFER = BUFFER.clone();
 
-        children.try_push(Task::spawn(fmt!(""), move || -> Result<()> {
-            // each thread performs the following atomic action n times
-            for _ in 0..N {
-                let current_val: u64;
-                let buffer = &mut BUFFER.lock();
-                current_val = get_counter(&mut buffer)?;
-                set_counter(&mut buffer, current_val+1)?;
-            }
-            Ok(())
-        })?)?;
+        children.try_push(Task::spawn(fmt!(""), do_work)?)?;
     }
 
     /*for child in children {
@@ -62,7 +64,7 @@ fn avg_counter_after_trials(w: i64, n: i64, num_trials: u64) -> Result<u64>{
     for _ in 0..num_trials {
         let buffer = &mut BUFFER.lock();
         set_counter(&mut buffer, INIT_VAL)?;
-        create_workers(w, n)?;
+        create_workers()?;
         counter_total += get_counter(&mut buffer)?;
     }
     Ok(counter_total / num_trials)
