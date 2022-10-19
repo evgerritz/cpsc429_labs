@@ -10,7 +10,20 @@ mod utils;
 use utils::*;
 use tflitec::interpreter::{Interpreter, Options};
 
+mod client;
+use client::Server;
+
 fn main() {
+    let mut server = Server::new();
+    let input: [u8; 4] = [1,2,3,4];
+    let mut output: [u8; 4] = [0,0,0,0];
+    println!("Sending bytes: {:?}", input);
+    server.send_bytes(&input);
+    server.receive_bytes(&mut output); 
+    println!("Received bytes: {:?}", output);
+}
+
+fn test_main() {
 	// load model and create interpreter
 	let options = Options::default();
 	let path = format!("resource/lite-model_movenet_singlepose_lightning_tflite_int8_4.tflite");
@@ -55,3 +68,4 @@ fn main() {
 		}
 	}
 }
+
