@@ -13,17 +13,8 @@ use tflitec::interpreter::{Interpreter, Options};
 mod client;
 use client::Server;
 
-fn main() {
-    let mut server = Server::new();
-    let input: [u8; 4] = [1,2,3,4];
-    let mut output: [u8; 4] = [0,0,0,0];
-    println!("Sending bytes: {:?}", input);
-    server.send_bytes(&input);
-    server.receive_bytes(&mut output); 
-    println!("Received bytes: {:?}", output);
-}
 
-fn test_main() {
+fn main() {
 	// load model and create interpreter
 	let options = Options::default();
 	let path = format!("resource/lite-model_movenet_singlepose_lightning_tflite_int8_4.tflite");
@@ -36,29 +27,28 @@ fn test_main() {
 	videoio::VideoCapture::is_opened(&cam).expect("Open camera [FAILED]");
 	cam.set(CAP_PROP_FPS, 30.0).expect("Set camera FPS [FAILED]");
 
+    // establish connection to server
+    let mut server = Server::new();
+    const LEN_OUTPUT: usize = 17*3; 
+
 	loop {
 		let mut frame = Mat::default();
 		cam.read(&mut frame).expect("VideoCapture: read [FAILED]");
 
 		if frame.size().unwrap().width > 0 {
-			// flip the image horizontally
-			let mut flipped = Mat::default();
-			flip(&frame, &mut flipped, 1).expect("flip [FAILED]");
-			// resize the image as a square, size is 
-			let resized_img = resize_with_padding(&flipped, [192, 192]);
+            // flip the image horizontally
+            let mut flipped = Mat::default();
+            flip(&frame, &mut flipped, 1).expect("flip [FAILED]");
 
-			// turn Mat into Vec<u8>
-			let vec_2d: Vec<Vec<Vec3b>> = resized_img.to_vec_2d().unwrap();
-			let vec_1d: Vec<u8> = vec_2d.iter().flat_map(|v| v.iter().flat_map(|w| w.as_slice())).cloned().collect();
-			// set input (tensor0)
-			interpreter.copy(&vec_1d[..], 0).unwrap();
-			
-			// run interpreter
-			interpreter.invoke().expect("Invoke [FAILED]");
+            let image_bytes: Vec<u8> = client::image_to_bytes(&flipped);
+            let mut output_bytes: [u8; LEN_OUTPUT*4] = [0; LEN_OUTPUT*4];
+            let mut output: [f32; LEN_OUTPUT] = [0.0; LEN_OUTPUT];
 
-			// get output
-			let output_tensor = interpreter.output(0).unwrap();
-			draw_keypoints(&mut flipped, output_tensor.data::<f32>(), 0.25);
+            server.send_bytes(&image_bytes);
+            server.receive_bytes(&mut output_bytes); 
+
+            client::bytes_to_f32(&output_bytes, &mut output);
+			draw_keypoints(&mut flipped, &output, 0.25);
 			imshow("MoveNet", &flipped).expect("imshow [ERROR]");
 		}
 		// keypress check

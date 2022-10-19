@@ -5,20 +5,21 @@ use std::thread;
 
 
 fn handle_client(mut stream: TcpStream) {
-    let mut read: [u8;4] = [0,0,0,0];
-    match stream.read(&mut read) {
-        Ok(n) => {
-            println!("{:?}", read);
-            for i in 0..read.len() {
-                read[i] += 1; 
-            }
-            println!("{:?}", read);
-            stream.write(&read[..]).unwrap();
-        }
-        Err(err) => {
-            println!("{err:?}");
-        }
-    }
+    const IM_SIZE: usize = 384 * 288;
+    let mut image_bytes: [u8; IM_SIZE];
+
+    let stream: Vec<u8> = stream.read(&mut image_bytes).expect("couldn't read from stream");
+
+    interpreter.copy(&image_bytes[..], 0).unwrap();
+
+    // run interpreter
+    interpreter.invoke().expect("Invoke [FAILED]");
+
+    // get output
+    let output_tensor = interpreter.output(0).unwrap();
+    let tensor_data = output_tensor.data::<f32>()
+
+    stream.write(&tensor_data[..]).unwrap();
 }
 
 pub fn main() {
