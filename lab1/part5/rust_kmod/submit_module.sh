@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
-MOD_DIR=~/Yale/CPSC429/cpsc429_labs/lab1/rust_kmod
-CURRENT_BRANCH=1_p5
+MOD_DIR=~/Yale/CPSC429/cpsc429_labs/lab1/part5/rust_kmod
+CURRENT_BRANCH=main
 
 cd $MOD_DIR
 git checkout $CURRENT_BRANCH

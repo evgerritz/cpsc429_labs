@@ -1,9 +1,9 @@
 #!/bin/bash
 
-MODULE_DIR=~/cpsc429_labs/lab1/rust_kmod
+MODULE_DIR=~/cpsc429_labs/lab1/part5/rust_kmod
 DRIVER_MODULE=rust_mymem.ko
 TEST_MODULE=mymem_test.ko
-CURRENT_BRANCH=1_p5  #change this to the name of your part 5 git branch
+CURRENT_BRANCH=main  
 
 cd $MODULE_DIR
 git pull origin $CURRENT_BRANCH

@@ -1,9 +1,9 @@
 #!/bin/bash
 
-SHARED_SAMPLES=~/cpsc429_labs/lab1/rust_kmod
-BUILD_SAMPLES=~/linux3/samples/rust
-BUILD_DIR=~/linux3/
-CURRENT_BRANCH=1_p5
+SHARED_SAMPLES=~/cpsc429_labs/lab1/part5/rust_kmod
+BUILD_SAMPLES=~/linux/samples/rust
+BUILD_DIR=~/linux/
+CURRENT_BRANCH=main
 
 cd $SHARED_SAMPLES
 git pull origin $CURRENT_BRANCH
