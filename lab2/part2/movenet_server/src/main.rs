@@ -23,7 +23,7 @@ fn handle_client(mut stream: TcpStream) {
 }
 
 pub fn main() {
-    let listener: TcpListener = TcpListener::bind("0.0.0.0:8888").unwrap();
+    let listener: TcpListener = TcpListener::bind("10.0.2.15:8888").unwrap();
     for stream in listener.incoming() {
         match stream {
             Ok(stream) => {
