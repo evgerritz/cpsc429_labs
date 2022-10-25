@@ -1,4 +1,4 @@
-use opencv::core::{flip, Vec3b};
+use opencv::core::flip;
 use opencv::videoio::*;
 use opencv::{
 	prelude::*,
@@ -8,20 +8,15 @@ use opencv::{
 
 mod utils;
 use utils::*;
-use tflitec::interpreter::{Interpreter, Options};
 
 mod client;
 use client::Server;
 
+use std::time::Instant;
+use std::time::Duration;
+
 
 fn main() {
-	// load model and create interpreter
-	let options = Options::default();
-	let path = format!("resource/lite-model_movenet_singlepose_lightning_tflite_int8_4.tflite");
-	let interpreter = Interpreter::with_model_path(&path, Some(options)).unwrap();
-	interpreter.allocate_tensors().expect("Allocate tensors [FAILED]");
-	// Resize input
-	
 	// open camera
 	let mut cam = videoio::VideoCapture::new(0, videoio::CAP_ANY).unwrap(); // 0 is the default camera
 	videoio::VideoCapture::is_opened(&cam).expect("Open camera [FAILED]");
@@ -31,7 +26,11 @@ fn main() {
     let mut server = Server::new();
     const LEN_OUTPUT: usize = 17*3; 
 
+    let mut counter: u64 = 0;
+    let mut total_time: Duration = Duration::new(0, 0);
+
 	loop {
+        let now = Instant::now();
 		let mut frame = Mat::default();
 		cam.read(&mut frame).expect("VideoCapture: read [FAILED]");
 
@@ -44,18 +43,23 @@ fn main() {
             let mut output_bytes: [u8; LEN_OUTPUT*4] = [0; LEN_OUTPUT*4];
             let mut output: [f32; LEN_OUTPUT] = [0.0; LEN_OUTPUT];
 
+            //println!("{:?}", image_bytes.len());
             server.send_bytes(&image_bytes);
             server.receive_bytes(&mut output_bytes); 
 
             client::bytes_to_f32(&output_bytes, &mut output);
 			draw_keypoints(&mut flipped, &output, 0.25);
 			imshow("MoveNet", &flipped).expect("imshow [ERROR]");
+
+            counter += 1;
 		}
+        total_time += now.elapsed();
 		// keypress check
 		let key = wait_key(1).unwrap();
 		if key > 0 && key != 255 {
 			break;
 		}
 	}
+    println!("avg images processed/sec: {:?} {:?}", total_time, (counter as u32));
 }
 
