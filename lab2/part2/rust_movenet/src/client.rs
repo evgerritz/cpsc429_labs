@@ -12,7 +12,7 @@ pub struct Server {
 impl Server {
     pub fn new() -> Server {
         Server {
-            stream: TcpStream::connect("128.36.108.21:8080").expect("could not connect"),
+            stream: TcpStream::connect("localhost:8080").expect("could not connect"),
         }
     }
 
