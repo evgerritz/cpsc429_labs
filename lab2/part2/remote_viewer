@@ -1,0 +1,5 @@
+#!/bin/bash
+ssh -f -N -L 10901:localhost:10901 eeg53@128.36.108.21
+vncviewer localhost:10901
+kill %1
+
