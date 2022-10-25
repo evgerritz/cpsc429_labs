@@ -60,6 +60,6 @@ fn main() {
 			break;
 		}
 	}
-    println!("avg images processed/sec: {:?} {:?}", total_time, (counter as u32));
+    println!("avg images processed/sec: {:?} ", total_time/(counter as u32));
 }
 
