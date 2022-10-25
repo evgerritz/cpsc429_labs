@@ -2,8 +2,7 @@ use crate::resize_with_padding;
 use opencv::core::Vec3b;
 use opencv::prelude::*;
 use std::net::TcpStream;
-use std::str;
-use std::io::{self, BufRead, BufReader, Write, Read};
+use std::io::{BufReader, Write, Read};
 
 pub struct Server {
     stream: TcpStream,

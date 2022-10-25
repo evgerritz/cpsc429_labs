@@ -2,7 +2,7 @@ use std::net::{TcpListener, TcpStream};
 use tflitec::interpreter::{Interpreter, Options};
 use std::io::Read;
 use std::io::Write;
-use std::thread;
+use std::io::BufReader;
 
 fn f32_to_bytes(floats: &[f32], bytes: &mut [u8]) {
     let mut i = 0;
@@ -19,12 +19,13 @@ fn handle_client(mut stream: TcpStream, interpreter: &Interpreter) {
     stream.set_read_timeout(None).expect("set read timeout failed");
     stream.set_write_timeout(None).expect("set write timeout failed");
     loop {
-        const IM_SIZE: usize = 384 * 288;
+        const IM_SIZE: usize = 192*192*3;
         let mut image_bytes: [u8; IM_SIZE] = [0; IM_SIZE];
+        let mut reader = BufReader::new(&stream);
 
-        let num_bytes = stream.read(&mut image_bytes).expect("couldn't read from stream");
+        let num_bytes = reader.read_exact(&mut image_bytes).expect("couldn't read from stream");
 
-        interpreter.copy(&image_bytes[..], 0).unwrap();
+        interpreter.copy(&image_bytes, 0).unwrap();
 
         // run interpreter
         interpreter.invoke().expect("Invoke [FAILED]");
@@ -37,7 +38,7 @@ fn handle_client(mut stream: TcpStream, interpreter: &Interpreter) {
         let mut tensor_bytes: [u8; LEN_OUTPUT*4] = [0; LEN_OUTPUT*4];
         f32_to_bytes(&tensor_data, &mut tensor_bytes);
 
-        stream.write(&tensor_bytes[..]).unwrap();
+        stream.write(&tensor_bytes).unwrap();
     }
 }
 
@@ -53,9 +54,7 @@ pub fn main() {
     for stream in listener.incoming() {
         match stream {
             Ok(stream) => {
-                //thread::spawn(|| {
-                    handle_client(stream, &interpreter);
-                //});
+                handle_client(stream, &interpreter);
             }
             Err(_) => {
                 println!("Error");
