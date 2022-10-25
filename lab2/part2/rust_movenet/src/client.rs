@@ -17,6 +17,7 @@ impl Server {
     }
 
     pub fn send_bytes(&mut self, bytes: &[u8]) {
+        println!("sending bytes");
         self.stream.write(bytes).expect("failed to write bytes");
     }
 
