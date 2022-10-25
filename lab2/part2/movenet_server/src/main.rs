@@ -23,7 +23,7 @@ fn handle_client(mut stream: TcpStream, interpreter: &Interpreter) {
         let mut image_bytes: [u8; IM_SIZE] = [0; IM_SIZE];
         let mut reader = BufReader::new(&stream);
 
-        let num_bytes = reader.read_exact(&mut image_bytes).expect("couldn't read from stream");
+        let _num_bytes = reader.read_exact(&mut image_bytes).expect("couldn't read from stream");
 
         interpreter.copy(&image_bytes, 0).unwrap();
 
