@@ -16,26 +16,29 @@ fn f32_to_bytes(floats: &[f32], bytes: &mut [u8]) {
 
 
 fn handle_client(mut stream: TcpStream, interpreter: &Interpreter) {
-    println!("got client!");
-    const IM_SIZE: usize = 384 * 288;
-    let mut image_bytes: [u8; IM_SIZE] = [0; IM_SIZE];
+    stream.set_read_timeout(None).expect("set read timeout failed");
+    stream.set_write_timeout(None).expect("set write timeout failed");
+    loop {
+        const IM_SIZE: usize = 384 * 288;
+        let mut image_bytes: [u8; IM_SIZE] = [0; IM_SIZE];
 
-    let num_bytes = stream.read(&mut image_bytes).expect("couldn't read from stream");
+        let num_bytes = stream.read(&mut image_bytes).expect("couldn't read from stream");
 
-    interpreter.copy(&image_bytes[..], 0).unwrap();
+        interpreter.copy(&image_bytes[..], 0).unwrap();
 
-    // run interpreter
-    interpreter.invoke().expect("Invoke [FAILED]");
+        // run interpreter
+        interpreter.invoke().expect("Invoke [FAILED]");
 
-    // get output
-    let output_tensor = interpreter.output(0).unwrap();
-    let tensor_data = output_tensor.data::<f32>();
+        // get output
+        let output_tensor = interpreter.output(0).unwrap();
+        let tensor_data = output_tensor.data::<f32>();
 
-    const LEN_OUTPUT: usize = 17*3;
-    let mut tensor_bytes: [u8; LEN_OUTPUT*4] = [0; LEN_OUTPUT*4];
-    f32_to_bytes(&tensor_data, &mut tensor_bytes);
+        const LEN_OUTPUT: usize = 17*3;
+        let mut tensor_bytes: [u8; LEN_OUTPUT*4] = [0; LEN_OUTPUT*4];
+        f32_to_bytes(&tensor_data, &mut tensor_bytes);
 
-    stream.write(&tensor_bytes[..]).unwrap();
+        stream.write(&tensor_bytes[..]).unwrap();
+    }
 }
 
 pub fn main() {

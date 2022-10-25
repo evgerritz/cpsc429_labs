@@ -13,15 +13,6 @@ use tflitec::interpreter::{Interpreter, Options};
 mod client;
 use client::Server;
 
-/*fn main() {
-    let mut server = Server::new();
-    let input: Vec<u8> = vec![1,2,3,4];
-    let mut output: Vec<u8> = vec![0,0,0,0];
-
-    server.send_bytes(&input[..]);
-    server.receive_bytes(&mut output[..]); 
-    println!("{:?}", output);
-}*/
 
 fn main() {
 	// load model and create interpreter

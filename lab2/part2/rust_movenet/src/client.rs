@@ -17,14 +17,12 @@ impl Server {
     }
 
     pub fn send_bytes(&mut self, bytes: &[u8]) {
-        println!("sending bytes");
         self.stream.write(bytes).expect("failed to write bytes");
     }
 
     pub fn receive_bytes(&self, buffer: &mut [u8]) {
         let mut reader = BufReader::new(& self.stream);
         reader.read(buffer).expect("could not read into buffer");
-        println!("{}", str::from_utf8(&buffer).expect("invalid utf-8 string"));
     }
 }
 
