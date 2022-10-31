@@ -15,7 +15,6 @@ use client::Server;
 use std::time::Instant;
 use std::time::Duration;
 
-
 fn main() {
 	// open camera
 	let mut cam = videoio::VideoCapture::new(0, videoio::CAP_ANY).unwrap(); // 0 is the default camera
@@ -53,6 +52,7 @@ fn main() {
 
             counter += 1;
 		}
+
         total_time += now.elapsed();
 		// keypress check
 		let key = wait_key(1).unwrap();
@@ -60,6 +60,7 @@ fn main() {
 			break;
 		}
 	}
+
     println!("avg images processed/sec: {:?} ", total_time/(counter as u32));
 }
 
