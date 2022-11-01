@@ -23,7 +23,9 @@ fn handle_client(mut stream: TcpStream, interpreter: &Interpreter) {
         let mut image_bytes: [u8; IM_SIZE] = [0; IM_SIZE];
         let mut reader = BufReader::new(&stream);
 
-        let _num_bytes = reader.read_exact(&mut image_bytes).expect("couldn't read from stream");
+        if let Err(num_bytes) = reader.read_exact(&mut image_bytes) {
+            break;
+        }
 
         interpreter.copy(&image_bytes, 0).unwrap();
 
@@ -48,9 +50,9 @@ pub fn main() {
 	let interpreter = Interpreter::with_model_path(&path, Some(options)).unwrap();
 	interpreter.allocate_tensors().expect("Allocate tensors [FAILED]");
 
-    let listener: TcpListener = TcpListener::bind("0.0.0.0:8080").unwrap();
+    //let listener: TcpListener = TcpListener::bind("0.0.0.0:8080").unwrap();
     // use this for zoo:
-    //let listener: TcpListener = TcpListener::bind("10.0.2.15:8888").unwrap();
+    let listener: TcpListener = TcpListener::bind("10.0.2.15:8888").unwrap();
     for stream in listener.incoming() {
         match stream {
             Ok(stream) => {
