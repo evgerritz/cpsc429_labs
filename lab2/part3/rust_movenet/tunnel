@@ -1,0 +1,4 @@
+#!/bin/bash
+#killall ssh
+ssh -N -f -L 8080:128.36.108.21:8080 eeg53@node.zoo.cs.yale.edu
+#ssh -N -f -L 8080:localhost:8080 evgerritz@130.132.173.114
