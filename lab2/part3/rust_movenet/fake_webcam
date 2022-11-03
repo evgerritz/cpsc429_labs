@@ -1,0 +1,5 @@
+if [ ! -f /dev/video2 ]
+then
+    sudo modprobe v4l2loopback card_label="My Fake Webcam" exclusive_caps=1
+fi
+ffmpeg -f v4l2 -input_format mjpeg -framerate 30  -video_size 320x180 -i /dev/video0 -pix_fmt yuyv422 -f v4l2 /dev/video2

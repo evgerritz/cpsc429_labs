@@ -1,26 +1,73 @@
-use opencv::core::flip;
-use opencv::videoio::*;
-use opencv::{
-	prelude::*,
-	videoio,
-	highgui::*,
-};
+//use v4l::buffer::Type;
+//use v4l::device::Device;
+use opencv::highgui::imshow;
+
+use std::{fs::File, os::unix::prelude::AsRawFd, str, ptr};
+use nix::{sys::ioctl, ioctl_read, ioctl_readwrite};
+use std::mem::size_of;
 
 mod utils;
 use utils::*;
+
+mod v4l_utils;
+use v4l_utils::*;
 
 mod client;
 use client::Server;
 
 use std::time::Instant;
 use std::time::Duration;
-
+use std::thread;
 
 fn main() {
-	// open camera
-	let mut cam = videoio::VideoCapture::new(0, videoio::CAP_ANY).unwrap(); // 0 is the default camera
-	videoio::VideoCapture::is_opened(&cam).expect("Open camera [FAILED]");
-	cam.set(CAP_PROP_FPS, 30.0).expect("Set camera FPS [FAILED]");
+    let mut file = File::options()
+		.write(true)
+		.read(true)
+		.open("/dev/video2")
+		.unwrap();
+
+    let media_fd = file.as_raw_fd();
+    println!("camera fd = {}", media_fd);
+
+    get_info(&media_fd);
+    get_format(&media_fd);
+    set_fmt_YUV422(&media_fd);
+    list_fmts(&media_fd);
+
+    let mut resbuf = buffer {
+        start: ptr::null_mut(),
+        length: 0
+    };
+
+    let mut reqbuf = v4l2_requestbuffers {
+        count: 0,
+        my_type: 0,
+        memory: 0,
+        reserved: [0; 2]
+    };
+    
+    request_buffer(&media_fd, &mut reqbuf);
+
+    map_buffer(&media_fd, &mut resbuf, &reqbuf);
+    
+    let mut qbuffer: v4l2_buffer = Default::default();
+    queue_buffer(&media_fd, &mut qbuffer);
+    start_streaming(&media_fd);
+
+    thread::sleep(Duration::from_millis(500));
+
+    let mut bytes = vec![0; 118784];
+    let name: String = String::from("output");
+    buffer_to_bytes(&resbuf, &mut bytes);
+    save_yuv(name, &bytes);
+
+    dequeue_buffer(&media_fd, &mut qbuffer);
+    stop_streaming(&media_fd);
+    destroy_buffer(&mut resbuf);
+}
+
+/*fn main() {
+
 
     // establish connection to server
     let mut server = Server::new();
@@ -61,5 +108,5 @@ fn main() {
 		}
 	}
     println!("avg images processed/sec: {:?} ", total_time/(counter as u32));
-}
+}*/
 
