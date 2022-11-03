@@ -1,5 +1,3 @@
-//use v4l::buffer::Type;
-//use v4l::device::Device;
 use opencv::highgui::imshow;
 use opencv::highgui::wait_key;
 use opencv::core::*;
@@ -76,18 +74,6 @@ fn main() {
 
         let mut bytes = vec![0; LEN_INPUT];
         buffer_to_bytes(&resbuf, &mut bytes);
-
-        let mut rgb_bytes = vec![0; LEN_INPUT*3/2];
-        yuv422_to_rgb24(&bytes, &mut rgb_bytes, IMG_WIDTH, IMG_HEIGHT);
-        let rgb_mat = unsafe {
-            Mat::new_rows_cols_with_data(
-                IMG_HEIGHT, IMG_WIDTH, CV_8UC3,
-                rgb_bytes.as_mut_ptr() as *mut libc::c_void,
-                (IMG_WIDTH*3).try_into().unwrap()
-            ).unwrap()
-        };
-        let resized_img = resize_with_padding(&rgb_mat, [192, 192]);
-        imshow("test", &resized_img).expect("fail");
 
         /*server.send_bytes(&bytes);
         server.receive_bytes(&mut output_bytes); 
