@@ -34,7 +34,6 @@ fn main() {
     // connect to server
     let mut server = Server::new();
 
-
     if debug {
         get_info(&media_fd);
         get_format(&media_fd);
@@ -63,7 +62,7 @@ fn main() {
     const LEN_INPUT: usize = 118784;
     const LEN_OUTPUT: usize = 17*3; 
     let now = Instant::now();
-    let i = 0;
+    let mut count: i32 = 0;
     loop {
         // create blank matrix to show points on
         // needs to be created each time or else points accumulate
@@ -88,6 +87,8 @@ fn main() {
 
         dequeue_buffer(&media_fd, &mut qbuffer);
 
+        count += 1;
+
 		// keypress check
 		let key = wait_key(1).unwrap();
 		if key > 0 && key != 255 {
@@ -96,7 +97,7 @@ fn main() {
         // save for debugging
         if debug {
             let mut name: String = String::from("frames_test/");
-            name.push_str(&i.to_string());
+            name.push_str(&count.to_string());
             save_yuv(name, &bytes);
         }
     }
@@ -104,7 +105,7 @@ fn main() {
     // calculate and print fps
     let total_time = now.elapsed();
     let total_time: f64 = (total_time.as_secs() as f64) + (total_time.subsec_nanos() as f64) / 1e9;
-    println!("fps: {:?} ", 30.0/total_time);
+    println!("fps: {:?} ", (count as f64)/total_time);
 
     // clean up
     stop_streaming(&media_fd);
