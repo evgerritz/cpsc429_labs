@@ -389,5 +389,3 @@ pub fn save_yuv(mut name: String, buffer: &[u8]) {
     let mut file = File::create(name).unwrap();
     file.write_all(buffer);
 }
-
-
