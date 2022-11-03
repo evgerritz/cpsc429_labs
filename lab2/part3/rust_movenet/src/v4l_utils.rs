@@ -201,6 +201,17 @@ pub struct v4l2_requestbuffers {
     pub reserved: [u32; 2]
 }
 
+impl Default for v4l2_requestbuffers {
+    fn default() -> v4l2_requestbuffers {
+        v4l2_requestbuffers {
+            count: 0,
+            my_type: 0,
+            memory: 0,
+            reserved: [0; 2]
+        }
+    }
+}
+
 #[repr(C)]
 struct timeval {
     tv_sec: u64,
@@ -239,31 +250,32 @@ pub struct v4l2_buffer {
 }
 
 impl Default for v4l2_buffer {
-    fn default() -> v4l2_buffer { v4l2_buffer {
-        index: 0,
-        my_type: V4L2_BUF_TYPE_VIDEO_CAPTURE,
-        bytesused: 0,
-        flags: 0,
-        field: 0,
-        align: 0,
-        timestamp: timeval { tv_sec: 0, tv_usec: 0 },
-        timecode: v4l2_timecode {
-            my_type: 0,
+    fn default() -> v4l2_buffer {
+        v4l2_buffer {
+            index: 0,
+            my_type: V4L2_BUF_TYPE_VIDEO_CAPTURE,
+            bytesused: 0,
             flags: 0,
-            frames: 0,
-            seconds: 0,
-            minutes: 0,
-            hours: 0,
-            userbits: [0; 4],
-        },
-        sequence: 0,
-        memory: V4L2_MEMORY_MMAP,
-        offset: 0,
-        offset2: 0,
-        length: 0,
-        reserved1: 0,
-        reserved2: [0; 2],
-    }
+            field: 0,
+            align: 0,
+            timestamp: timeval { tv_sec: 0, tv_usec: 0 },
+            timecode: v4l2_timecode {
+                my_type: 0,
+                flags: 0,
+                frames: 0,
+                seconds: 0,
+                minutes: 0,
+                hours: 0,
+                userbits: [0; 4],
+            },
+            sequence: 0,
+            memory: V4L2_MEMORY_MMAP,
+            offset: 0,
+            offset2: 0,
+            length: 0,
+            reserved1: 0,
+            reserved2: [0; 2],
+        }
     }
 }
 
@@ -362,9 +374,13 @@ pub fn dequeue_buffer(media_fd: &RawFd, qbuffer: &mut v4l2_buffer) {
     }
 }
 
+pub fn destroy_buffer(resbuf: &mut buffer) {
+    unsafe { libc::munmap(resbuf.start, resbuf.length); }; 
+}
+
 pub fn buffer_to_bytes(resbuf: &buffer, bytes: &mut Vec<u8>) {
     unsafe { 
-        ptr::copy_nonoverlapping(bytes.as_ptr(), resbuf.start as *mut u8, resbuf.length);
+        ptr::copy_nonoverlapping(resbuf.start as *const u8, bytes.as_mut_ptr(), resbuf.length);
     }
 }
 
@@ -374,6 +390,59 @@ pub fn save_yuv(mut name: String, buffer: &[u8]) {
     file.write_all(buffer);
 }
 
-pub fn destroy_buffer(resbuf: &mut buffer) {
-    unsafe { libc::munmap(resbuf.start, resbuf.length); }; 
+
+fn YUV_2_B(y: i32, u: i32) -> i32 {
+    let y = y as f32;
+    let u = u as f32;
+    (y + 1.732446 * (u - 128.0)) as i32
+}
+fn YUV_2_G(y: i32, u: i32, v: i32) -> i32 {
+    let y = y as f32;
+    let u = u as f32;
+    let v = v as f32;
+    (y - 0.698001 * (u - 128.0) - 0.703125 * (v - 128.0)) as i32
+}
+fn YUV_2_R(y: i32, v: i32) -> i32 {
+    let y = y as f32;
+    let v = v as f32;
+    (y + 1.370705 * (v - 128.0)) as i32
+}
+
+// adapted from https://github.com/kd40629rtlrtl/yuv422_to_rgb/blob/master/yuv_to_rgb.c
+pub fn yuv422_to_rgb24(in_buf: &[u8], out_buf: &mut [u8], width: i32, height: i32) {
+    let len: i32 = width * height;
+    let yData: &[u8] = in_buf;
+    let vData: &[u8] = in_buf; 
+    let uData: &[u8] = in_buf;
+
+    let mut bgr: [i32; 3] = [0; 3];
+    let mut yIdx: usize;
+    let mut uIdx: usize;
+    let mut vIdx: usize;
+    let mut idx: usize;
+    for y in 0..height {
+        for x in 0..width {
+           	yIdx = 2*((y*width) + x) as usize;
+            uIdx = (4*(((y*width) + x)>>1) + 1) as usize;
+            vIdx = (4*(((y*width) + x)>>1) + 3) as usize;
+
+            if yIdx >= in_buf.len() || uIdx >= in_buf.len() || vIdx >= in_buf.len() {
+                return; 
+            }
+            bgr[0] = YUV_2_B(yData[yIdx].into(), uData[uIdx].into()); 
+			bgr[1] = YUV_2_G(yData[yIdx].into(), uData[uIdx].into(), vData[vIdx].into());
+			bgr[2] = YUV_2_R(yData[yIdx].into(), vData[vIdx].into()); 
+
+			for k in 0..3 as usize {
+                idx = ((y * width + x) * 3 + (k as i32)) as usize;
+                if bgr[k] >= 0 && bgr[k] <= 255 {
+                    out_buf[idx] = bgr[k] as u8;
+                } else if bgr[k] < 0 {
+                    out_buf[idx] = 0;
+                } else {
+                    out_buf[idx] = 255;
+                }
+            }
+        }
+    }
 }
