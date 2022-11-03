@@ -8,3 +8,6 @@ edition = "2021"
 [dependencies]
 opencv = "0.69.0"
 tflitec = "0.5.1"
+v4l = "*"
+nix = "*"
+libc = "0.2"
