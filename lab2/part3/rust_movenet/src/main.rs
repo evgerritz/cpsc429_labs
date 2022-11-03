@@ -59,27 +59,32 @@ fn main() {
 
     const IMG_WIDTH: i32 = 320;
     const IMG_HEIGHT: i32 = 180;
-    let mut blank = Mat::new_size_with_default(
-        Size{ height: IMG_HEIGHT, width: IMG_WIDTH },
-        CV_8UC3, (255.0,255.0,255.0,0.0).into()
-    ).unwrap();
 
     const LEN_INPUT: usize = 118784;
     const LEN_OUTPUT: usize = 17*3; 
     let now = Instant::now();
     let i = 0;
     loop {
+        // create blank matrix to show points on
+        // needs to be created each time or else points accumulate
+        let mut blank = Mat::new_size_with_default(
+            Size{ height: IMG_HEIGHT, width: IMG_WIDTH },
+            CV_8UC3, (255.0,255.0,255.0,0.0).into()
+        ).unwrap();
+
         queue_buffer(&media_fd, &mut qbuffer);
         thread::sleep(Duration::from_millis(25));
 
-        let mut bytes = vec![0; LEN_INPUT];
+        let mut bytes = vec![0u8; LEN_INPUT];
         buffer_to_bytes(&resbuf, &mut bytes);
+        server.send_bytes(&bytes);
 
-        /*server.send_bytes(&bytes);
+        let mut output_bytes = vec![0u8; LEN_OUTPUT*4];
+        let mut output = [0.0f32; LEN_OUTPUT];
         server.receive_bytes(&mut output_bytes); 
         client::bytes_to_f32(&output_bytes, &mut output);
         draw_keypoints(&mut blank, &output, 0.25);
-        imshow("MoveNet", &blank).expect("imshow [ERROR]");*/
+        imshow("MoveNet", &blank).expect("imshow [ERROR]");
 
         dequeue_buffer(&media_fd, &mut qbuffer);
 
