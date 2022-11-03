@@ -1,0 +1,1 @@
+for i in frames_test/*.yuv; do ffmpeg -pix_fmt yuyv422 -s 320x180 -i "$i" -y "${i%.*}.jpg" 2>&1 >/dev/null; done
