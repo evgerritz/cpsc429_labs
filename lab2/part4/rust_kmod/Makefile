@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0
-#RUST_LIB_SRC ?= $(rustc_sysroot)/lib/rustlib/src/rust/library
-#core-cfgs = \
-    --cfg no_fp_fmt_parse
+
+obj-$(CONFIG_SAMPLES_RUST)			+= custom_modules/
 
 obj-$(CONFIG_SAMPLE_RUST_MINIMAL)		+= rust_minimal.o
 obj-$(CONFIG_SAMPLE_RUST_PRINT)			+= rust_print.o
@@ -18,10 +17,10 @@ obj-$(CONFIG_SAMPLE_RUST_NETFILTER)		+= rust_netfilter.o
 obj-$(CONFIG_SAMPLE_RUST_ECHO_SERVER)		+= rust_echo_server.o
 obj-$(CONFIG_SAMPLE_RUST_FS)			+= rust_fs.o
 obj-$(CONFIG_SAMPLE_RUST_SELFTESTS)		+= rust_selftests.o
-obj-$(CONFIG_SAMPLE_RUST_MYMEM)		+= Rust_mymem.o
-obj-$(CONFIG_SAMPLE_MYMEM_TEST)		+= mymem_test.o
-always-$(CONFIG_RUST)		+= exports_mymem_generated.h
-Rust_mymem-objs := rust_mymem.o exports.o
+#always-$(CONFIG_RUST)		+= exports_mymem_generated.h
+#obj-$(CONFIG_SAMPLE_RUST_MYMEM)		+= Rust_mymem.o
+#obj-$(CONFIG_SAMPLE_MYMEM_TEST)		+= mymem_test.o
+#Rust_mymem-objs := rust_mymem.o exports.o
 
 subdir-$(CONFIG_SAMPLE_RUST_HOSTPROGS)		+= hostprogs
 
@@ -36,3 +35,4 @@ quiet_cmd_exports = EXPORTS $@
 $(obj)/exports_mymem_generated.h: $(obj)/rust_mymem.o FORCE
 	$(call if_changed,exports)
 
+$(obj)/Rust_mymem.o: $(obj)/exports_mymem_generated.h

@@ -173,4 +173,16 @@ config SAMPLE_RUST_MYMEM
 
 	  If unsure, say N.
 
+config SAMPLE_MYMEM_TEST
+	tristate "mymem_test module"
+	help
+	  This option builds the test module for the simple memory module.
+
+	  To compile this as a module, choose M here:
+	  the module will be called mymem_test.
+
+	  If unsure, say N.
+
+source "samples/rust/custom_modules/Kconfig"
+
 endif # SAMPLES_RUST
