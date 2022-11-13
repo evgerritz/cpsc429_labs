@@ -1,5 +1,4 @@
 use kernel::prelude::*;
-use kernel::sync::smutex::Mutex;
 use kernel::{
     file::{self, File},
     io_buffer::{IoBufferReader, IoBufferWriter},
