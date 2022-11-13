@@ -198,7 +198,7 @@ fn start_capture() {
             mem::size_of::<bindings::sockaddr_in>().try_into().unwrap(),
             bindings::O_RDWR.try_into().unwrap()
     )};*/
-    let ret = bindings::kernel_connect(socket, *mut saddr,
+    let ret = bindings::kernel_connect(socket, &mut saddr,
             mem::size_of::<bindings::sockaddr_in>().try_into().unwrap(),
             (bindings::_IOC_READ | bindings::_IOC_WRITE) as ffi::c_int);
     pr_info!("connect returned: {:?}\n", ret);
