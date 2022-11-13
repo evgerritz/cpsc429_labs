@@ -23,6 +23,8 @@ const VIDIOC_STREAMOFF: u32 = 1074026003;
 const VIDIOC_QBUF: u32 = 3227014671; 
 const VIDIOC_DQBUF: u32 = 3227014673;
 
+const IM_SIZE: usize = 118784;
+
 module! {
     type: RustCamera,
     name: "rust_camera",
@@ -155,12 +157,12 @@ impl file::Operations for RustCamera {
         let mut msg_bytes = [0u8; 32];
         data.read_slice(&mut msg_bytes).expect("couldn't read data");
         *user_msg.lock() = unsafe { mem::transmute::<[u8; 32], kernel_msg>(msg_bytes) }; 
-        start_capture(); // user program will block here indefinitely
+        start_capture(shared); // user program will block here indefinitely
         Ok(0)
     }
 }
 
-fn start_capture() {
+fn start_capture(shared: RefBorrow<'_, Device>) {
     let fname = c_str!("/dev/video2");
     let mut camera_filp = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
     pr_info!("151\n");
@@ -209,16 +211,20 @@ fn start_capture() {
     pr_info!("186\n");
 
     let buffer_kaddr = pfn_to_kaddr(msg.start_pfn);    
-    let buffer_p = unsafe { mem::transmute::<u64, *mut [u8;10]>(buffer_kaddr) } ;
+    let buffer_p = unsafe { mem::transmute::<u64, *mut [u8;usize]>(buffer_kaddr) } ;
     pr_info!("{:?} {:?} {:?}\n", camera_filp, msg.buffer, msg.my_type);
     queue_buffer(camera_filp, msg.buffer);
     start_streaming(camera_filp, msg.my_type);
     for _ in 1..30 {
         queue_buffer(camera_filp, msg.buffer);
         coarse_sleep(Duration::from_millis(25));
-        stream.write(&[69u8; 10], true);
-        pr_info!("buffer: {:?}\n", *buffer_p);
+        stream.write(*buffer_p, true);
         dequeue_buffer(camera_filp, msg.buffer);
+        {
+            let buffer = shared.buffer.lock();
+            stream.read(&buffer).expect("could not receive bytes in buffer");
+            pr_info!("{:?}", buffer);
+        }
     }
     stop_streaming(camera_filp, msg.my_type);
 }
