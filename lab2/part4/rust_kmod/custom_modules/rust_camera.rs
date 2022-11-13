@@ -128,13 +128,12 @@ impl file::Operations for RustCamera {
         data.read_slice(&mut msg_bytes).expect("couldn't read data");
         let msg: kernel_msg = unsafe { mem::transmute::<[u8; 32], kernel_msg>(msg_bytes) };
 
-
-        let camera_file = bindings::filp_open("/dev/video2" as *const i8, O_RDWR, 0);
+        let camera_file = bindings::filp_open("/dev/video2" as *const i8, bindings::O_RDWR, 0);
         Ok(0)
     }
 }
 
-fn start_streaming(media_fd: &RawFd) {
+/*fn start_streaming(media_fd: &RawFd) {
     // Activate streaming
     let mut my_type = V4L2_BUF_TYPE_VIDEO_CAPTURE as i32;
 
@@ -148,7 +147,7 @@ fn start_streaming(media_fd: &RawFd) {
 }
 
 
-pub fn stop_streaming(media_fd: &RawFd) {
+fn stop_streaming(media_fd: &RawFd) {
     // Activate streaming
     let mut my_type = V4L2_BUF_TYPE_VIDEO_CAPTURE as i32;
 
@@ -169,4 +168,4 @@ pub fn queue_buffer(media_fd: &RawFd, qbuffer: &mut v4l2_buffer) {
             println!("queue buf [FAILED]: {:?}", e);
         },
     }
-}
+}*/
