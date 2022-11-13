@@ -164,7 +164,7 @@ impl file::Operations for RustCamera {
 
 fn start_capture() {
             pr_info!("151\n");
-            
+            let msg = *user_msg.lock();
             let mut socket = ptr::null_mut();
             let ret = unsafe {
                 bindings::sock_create(
