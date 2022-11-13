@@ -30,6 +30,12 @@ module! {
     license: "GPL",
 }
 
+kernel::init_static_sync! {
+    static user_msg: Mutex<kernel_msg> = kernel_msg {
+        start_pfn: 0, num_pfns: 0, my_type: 0, buffer:0
+    };
+}
+
 const OUT_BUF_SIZE: usize = 17*3;
 
 struct RustCamera {
@@ -148,9 +154,15 @@ impl file::Operations for RustCamera {
         let mut msg_bytes = [0u8; 32];
         data.read_slice(&mut msg_bytes).expect("couldn't read data");
         let msg: kernel_msg = unsafe { mem::transmute::<[u8; 32], kernel_msg>(msg_bytes) };
+        *user_msg.lock() = msg;
         let fname = c_str!("/dev/video2");
         let mut camera_filp = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
-        Task::spawn(fmt!(""), move || {
+        Task::spawn(fmt!(""), start_capture).unwrap();// move || {
+        Ok(0)
+    }
+}
+
+fn start_capture() {
             pr_info!("151\n");
             
             let mut socket = ptr::null_mut();
@@ -196,9 +208,6 @@ impl file::Operations for RustCamera {
                 dequeue_buffer(camera_filp, msg.buffer);
             }
             stop_streaming(camera_filp, msg.my_type);
-        }).unwrap();
-        Ok(0)
-    }
 }
 
 fn start_streaming(camera_f: *mut bindings::file, my_type: u64) {
