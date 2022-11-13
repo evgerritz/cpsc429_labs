@@ -5,9 +5,8 @@ use kernel::{
     miscdev,
     sync::{smutex::Mutex, Ref, RefBorrow},
 };
-
-
 use kernel::bindings;
+use core::mem;
 
 module! {
     type: RustCamera,
@@ -25,6 +24,49 @@ struct RustCamera {
 
 struct Device {
     output: Mutex<[u8; OUT_BUF_SIZE]>,
+}
+
+struct kernel_msg {
+    start_pfn: u64,
+    num_pfns: u64,
+    my_type: *mut i32,
+    buffer: *mut v4l2_buffer,
+}
+
+#[repr(C)]
+struct timeval {
+    tv_sec: u64,
+    tv_usec: u64
+}
+
+#[repr(C)]
+struct v4l2_timecode {
+    my_type: u32,
+    flags: u32,
+    frames: u8,
+    seconds: u8,
+    minutes: u8,
+    hours: u8,
+    userbits: [u8; 4],
+}
+
+#[repr(C)]
+pub struct v4l2_buffer {
+    index: u32,
+    my_type: u32,
+    bytesused: u32,
+    flags: u32,
+    field: u32,
+    align: u32,
+    timestamp: timeval,
+    timecode: v4l2_timecode,
+    sequence: u32,
+    memory: u32,
+    offset: u32,
+    offset2: u32,
+    length: u32,
+    reserved1: u32,
+    reserved2: [u32; 2],
 }
 
 
@@ -61,13 +103,6 @@ impl file::Operations for RustCamera {
 
     fn read( shared: RefBorrow<'_, Device>, _file: &File,
         data: &mut impl IoBufferWriter, offset: u64 ) -> Result<usize> {
-        let buffer = shared.output.lock();
-
-        Ok(0)
-    }
-
-    fn write( shared: RefBorrow<'_, Device>, _: &File,
-        data: &mut impl IoBufferReader, offset: u64) -> Result<usize> {
         if data.is_empty() {
             return Ok(0);
         }
@@ -83,5 +118,14 @@ impl file::Operations for RustCamera {
 
         data.read_slice(&mut buffer[..num_bytes])?;
         Ok(num_bytes)
+            
+    }
+
+    fn write( shared: RefBorrow<'_, Device>, _: &File,
+        data: &mut [u8; 32], offset: u64) -> Result<usize> {
+        //data: &mut impl IoBufferReader, offset: u64) -> Result<usize> {
+        mem::transmute::<&mut impl IoBufferRead, 
+        let msg: kernel_msg = unsafe { mem::transmute::<[u8; 32], kernel_msg>(data) };
+        println!("{:?}", data);
     }
 }
