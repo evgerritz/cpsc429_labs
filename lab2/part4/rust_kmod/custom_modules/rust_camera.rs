@@ -10,7 +10,7 @@ use kernel::bindings;
 use core::mem;
 
 // constants obtained by printing out values in C
-const VIDIOC_STREAMON: u641 = 1074026002;
+const VIDIOC_STREAMON: u64 = 1074026002;
 const VIDIOC_STREAMOFF: u64 = 1074026003;
 const VIDIOC_QBUF: u64 = 3227014671; 
 const VIDIOC_DQBUF: u64 = 3227014673;
@@ -36,8 +36,8 @@ struct Device {
 struct kernel_msg {
     start_pfn: u64,
     num_pfns: u64,
-    my_type: *mut i32,
-    buffer: *mut v4l2_buffer,
+    my_type: u64,
+    buffer: u64
 }
 
 #[repr(C)]
@@ -136,14 +136,14 @@ impl file::Operations for RustCamera {
         let msg: kernel_msg = unsafe { mem::transmute::<[u8; 32], kernel_msg>(msg_bytes) };
 
         let fname = c_str!("/dev/video2");
-        let camera_file = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
+        let mut camera_file = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
         Ok(0)
     }
 }
 
-fn start_streaming(camera_f: &bindings::file, my_type: *mut i32) {
+fn start_streaming(camera_f: &mut bindings::file, my_type: u64) {
     // Activate streaming
-    bindings::vfs_ioctl(camera_f, VIDIOC_STREAMON, my_type);
+    bindings::vfs_ioctl(&mut camera_f as *mut bindings::file, VIDIOC_STREAMON, my_type);
 }
 
 
