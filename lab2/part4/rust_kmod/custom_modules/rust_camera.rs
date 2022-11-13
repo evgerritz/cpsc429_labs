@@ -15,7 +15,7 @@ struct RustCamera {}
 
 impl kernel::Module for RustCamera {
     fn init(_name: &'static CStr, _module: &'static ThisModule) -> Result<Self> {
-        pr_info!("RustCamera (init)\n");
+        pr_info!("RustCamera2 (init)\n");
         // make RustCamera a miscdev as you have done in A1P4
 
         Ok(RustCamera {})
