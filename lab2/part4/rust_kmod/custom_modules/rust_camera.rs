@@ -182,7 +182,7 @@ impl file::Operations for RustCamera {
         loop {
             queue_buffer(camera_filp, msg.buffer);
             coarse_sleep(Duration::from_millis(2));
-            stream.write(&[69u8; 10], true);
+            //stream.write(&[69u8; 10], true);
             dequeue_buffer(camera_filp, msg.buffer);
         }
         stop_streaming(camera_filp, msg.my_type);
