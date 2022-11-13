@@ -216,7 +216,7 @@ fn start_streaming(camera_f: *mut bindings::file, my_type: u64) {
 
     if  r < 0 {
         pr_info!("streamon failed!\n");
-        println!("", Err(Error::from_kernel_errno(r)));
+        pr_info!("{:?}\n", Err(Error::from_kernel_errno(r)));
     }
 }
 
