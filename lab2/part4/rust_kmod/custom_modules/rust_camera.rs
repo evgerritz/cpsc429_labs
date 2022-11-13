@@ -127,7 +127,7 @@ impl file::Operations for RustCamera {
         let mut msg_bytes = [0u8; 32];
         data.read_slice(&mut msg_bytes).expect("couldn't read data");
         let msg: kernel_msg = unsafe { mem::transmute::<[u8; 32], kernel_msg>(msg_bytes) };
-        pr_info!("{:?}\n", msg_bytes);
+        pr_info!("{:?} {:?} {:?} {:?}\n", msg.start_pfn, msg.num_pfns, msg.my_type, msg.buffer);
         Ok(0)
     }
 }
