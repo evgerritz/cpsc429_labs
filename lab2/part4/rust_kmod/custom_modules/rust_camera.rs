@@ -11,7 +11,7 @@ use kernel::{
 use kernel::bindings;
 use core::mem;
 use core::ptr;
-use core::default::Default;
+use core::default;
 use core::time::Duration;
 
 // constants obtained by printing out values in C
@@ -161,8 +161,8 @@ impl file::Operations for RustCamera {
                 &mut socket,
             )
         };
-        let saddr: bindings::sockaddr_in = Default();
-        saddr.sin_family = bindings::PF_INET;
+        let saddr: bindings::sockaddr_in = default::Default();
+        saddr.sin_family = bindings::PF_INET as u16;
         saddr.sin_port = 0x401f; // 8000 -> 0x1f40 -> 0x401f
         saddr.sin_addr.s_addr = 0x1000007f; // 127.0.0.1 -> 0x7f000001 -> big endian
 
