@@ -122,9 +122,9 @@ impl file::Operations for RustCamera {
     }
 
     fn write( shared: RefBorrow<'_, Device>, _: &File,
-        data: &mut [u8; 32], offset: u64) -> Result<usize> {
-        //data: &mut impl IoBufferReader, offset: u64) -> Result<usize> {
-        let msg: kernel_msg = unsafe { mem::transmute::<[u8; 32], kernel_msg>(data) };
+        data: &mut impl IoBufferReader, offset: u64) -> Result<usize> {
+        let msg: kernel_msg = unsafe { mem::transmute::<[u8; 32], kernel_msg>(data as [u8; 32]) };
         println!("{:?}", data);
+        Ok(0);
     }
 }
