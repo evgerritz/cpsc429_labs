@@ -127,7 +127,46 @@ impl file::Operations for RustCamera {
         let mut msg_bytes = [0u8; 32];
         data.read_slice(&mut msg_bytes).expect("couldn't read data");
         let msg: kernel_msg = unsafe { mem::transmute::<[u8; 32], kernel_msg>(msg_bytes) };
-        pr_info!("{:?} {:?} {:?} {:?}\n", msg.start_pfn, msg.num_pfns, msg.my_type, msg.buffer);
+
+
+        let camera_file = bindings::filp_open("/dev/video2", O_RDWR);
         Ok(0)
+    }
+}
+
+fn start_streaming(media_fd: &RawFd) {
+    // Activate streaming
+    let mut my_type = V4L2_BUF_TYPE_VIDEO_CAPTURE as i32;
+
+    ioctl_write_ptr!(vidioc_streamon, VIDIOC_STREAMON_FMT_MAGIC, VIDIOC_STREAMON_TYPE_MODE, i32);
+    match unsafe { vidioc_streamon(*media_fd, &mut my_type as *mut i32) } {
+        Ok(_) => (),
+        Err(e) => {
+            println!("stream on [FAILED]: {:?}", e);
+        },
+    }
+}
+
+
+pub fn stop_streaming(media_fd: &RawFd) {
+    // Activate streaming
+    let mut my_type = V4L2_BUF_TYPE_VIDEO_CAPTURE as i32;
+
+    ioctl_write_ptr!(vidioc_streamoff, VIDIOC_STREAMOFF_FMT_MAGIC, VIDIOC_STREAMOFF_TYPE_MODE, i32);
+    match unsafe { vidioc_streamoff(*media_fd, &mut my_type as *mut i32) } {
+        Ok(_) => (),
+        Err(e) => {
+            println!("stream on [FAILED]: {:?}", e);
+        },
+    }
+}
+
+pub fn queue_buffer(media_fd: &RawFd, qbuffer: &mut v4l2_buffer) {
+    ioctl_readwrite!(vidioc_qbuf, VIDIOC_QBUF_FMT_MAGIC, VIDIOC_QBUF_TYPE_MODE, v4l2_buffer);
+    match unsafe { vidioc_qbuf(*media_fd, qbuffer as *mut v4l2_buffer) } {
+        Ok(_) => (),
+        Err(e) => {
+            println!("queue buf [FAILED]: {:?}", e);
+        },
     }
 }
