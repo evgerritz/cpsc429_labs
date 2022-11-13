@@ -136,10 +136,12 @@ impl file::Operations for RustCamera {
         let msg: kernel_msg = unsafe { mem::transmute::<[u8; 32], kernel_msg>(msg_bytes) };
 
         let fname = c_str!("/dev/video2");
-        let mut camera_file = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
-        pr_info!("my_type: {:?}\n", msg.my_type);
+        let mut camera_filp = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
 
-        start_streaming(camera_file, msg.my_type);
+        start_streaming(camera_filp, msg.my_type);
+        queue_buffer(camera_filp, msg.buffer);
+        dequeue_buffer(camera_filp, msg.buffer);
+        stop_streaming(camera_filp, msg.my_type);
         Ok(0)
     }
 }
@@ -147,29 +149,20 @@ impl file::Operations for RustCamera {
 fn start_streaming(camera_f: *mut bindings::file, my_type: u64) {
     // Activate streaming
     let res = unsafe { bindings::vfs_ioctl(camera_f, VIDIOC_STREAMON, my_type) };
-    pr_info!("vfs_ioctl returned: {:?}", res);
+    pr_info!("streamon returned: {:?}", res);
 }
 
-
-/*fn stop_streaming(media_fd: &RawFd) {
-    // Activate streaming
-    let mut my_type = V4L2_BUF_TYPE_VIDEO_CAPTURE as i32;
-
-    ioctl_write_ptr!(vidioc_streamoff, VIDIOC_STREAMOFF_FMT_MAGIC, VIDIOC_STREAMOFF_TYPE_MODE, i32);
-    match unsafe { vidioc_streamoff(*media_fd, &mut my_type as *mut i32) } {
-        Ok(_) => (),
-        Err(e) => {
-            println!("stream on [FAILED]: {:?}", e);
-        },
-    }
+fn stop_streaming(camera_f: *mut bindings::file, my_type: u64) {
+    let res = unsafe { bindings::vfs_ioctl(camera_f, VIDIOC_STREAMOFF, my_type) };
+    pr_info!("streamoff returned: {:?}", res);
 }
 
-pub fn queue_buffer(media_fd: &RawFd, qbuffer: &mut v4l2_buffer) {
-    ioctl_readwrite!(vidioc_qbuf, VIDIOC_QBUF_FMT_MAGIC, VIDIOC_QBUF_TYPE_MODE, v4l2_buffer);
-    match unsafe { vidioc_qbuf(*media_fd, qbuffer as *mut v4l2_buffer) } {
-        Ok(_) => (),
-        Err(e) => {
-            println!("queue buf [FAILED]: {:?}", e);
-        },
-    }
-}*/
+fn queue_buffer(camera_f: *mut bindings::file, buffer: u64) {
+    let res = unsafe { bindings::vfs_ioctl(camera_f, VIDIOC_QBUF, buffer) };
+    pr_info!("qbuf returned: {:?}", res);
+}
+
+fn dequeue_buffer(camera_f: *mut bindings::file, buffer: u64) {
+    let res = unsafe { bindings::vfs_ioctl(camera_f, VIDIOC_DQBUF, buffer) };
+    pr_info!("dqbuf returned: {:?}", res);
+}
