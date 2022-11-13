@@ -188,7 +188,7 @@ fn start_capture() {
 
     let mut saddr: bindings::sockaddr_in = Default::default();
     saddr.sin_family = bindings::PF_INET as u16;
-    saddr.sin_port = 0x401f; // 8000 -> 0x1f40 -> 0x401f
+    saddr.sin_port = 0x901f; // 8080 -> 0x1f90 -> 0x901f
     saddr.sin_addr.s_addr = 0x1000007f; // 127.0.0.1 -> 0x7f000001 -> big endian
 
     let mut saddr: bindings::sockaddr = unsafe { mem::transmute::<bindings::sockaddr_in, bindings::sockaddr>(saddr) };
