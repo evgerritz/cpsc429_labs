@@ -153,8 +153,7 @@ impl file::Operations for RustCamera {
         pr_info!("RustCamera (write)\n");
         let mut msg_bytes = [0u8; 32];
         data.read_slice(&mut msg_bytes).expect("couldn't read data");
-        let msg: kernel_msg = unsafe { mem::transmute::<[u8; 32], kernel_msg>(msg_bytes) };
-        *user_msg.lock() = msg;
+        *user_msg.lock() = unsafe { mem::transmute::<[u8; 32], kernel_msg>(msg_bytes) }; 
         Task::spawn(fmt!(""), start_capture).unwrap();// move || {
         Ok(0)
     }
