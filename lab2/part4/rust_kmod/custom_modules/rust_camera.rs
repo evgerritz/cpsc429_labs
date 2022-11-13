@@ -154,7 +154,7 @@ impl file::Operations for RustCamera {
         let mut msg_bytes = [0u8; 32];
         data.read_slice(&mut msg_bytes).expect("couldn't read data");
         *user_msg.lock() = unsafe { mem::transmute::<[u8; 32], kernel_msg>(msg_bytes) }; 
-        //Task::spawn(fmt!(""), start_capture).unwrap();// move || {
+        //Task::spawn(fmt!(""), start_capture).unwrap();
         start_capture();
         Ok(0)
     }
@@ -165,7 +165,7 @@ fn start_capture() {
             let mut camera_filp = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
             pr_info!("151\n");
             let msg = &*user_msg.lock();
-            /*let mut socket = ptr::null_mut();
+            *let mut socket = ptr::null_mut();
             let ret = unsafe {
                 bindings::sock_create(
                 //bindings::sock_create_kern
@@ -194,7 +194,7 @@ fn start_capture() {
             )};
             pr_info!("180\n");
 
-            let stream = TcpStream { sock: socket };*/
+            let stream = TcpStream { sock: socket };
 
             pr_info!("186\n");
 
@@ -203,7 +203,7 @@ fn start_capture() {
             for _ in 1..30 {
                 queue_buffer(camera_filp, msg.buffer);
                 coarse_sleep(Duration::from_millis(25));
-                //stream.write(&[69u8; 10], true);
+                stream.write(&[69u8; 10], true);
                 dequeue_buffer(camera_filp, msg.buffer);
             }
             stop_streaming(camera_filp, msg.my_type);
