@@ -166,13 +166,14 @@ fn start_capture() {
     pr_info!("151\n");
     let msg = &*user_msg.lock();
     let mut socket = ptr::null_mut();
-    let ret = bindings::sock_create_kern(
-        &mut bindings::init_net,
-        bindings::PF_INET as ffi::c_int, 
-        bindings::sock_type_SOCK_STREAM as ffi::c_int,
-        bindings::IPPROTO_TCP as ffi::c_int,
-        &mut socket
-    );
+    let ret = unsafe {
+        bindings::sock_create_kern(
+            &mut bindings::init_net,
+            bindings::PF_INET as ffi::c_int, 
+            bindings::sock_type_SOCK_STREAM as ffi::c_int,
+            bindings::IPPROTO_TCP as ffi::c_int,
+            &mut socket
+    )};
     /*let ret = unsafe {
         bindings::sock_create(
         //bindings::sock_create_kern
@@ -198,9 +199,9 @@ fn start_capture() {
             mem::size_of::<bindings::sockaddr_in>().try_into().unwrap(),
             bindings::O_RDWR.try_into().unwrap()
     )};*/
-    let ret = bindings::kernel_connect(socket, &mut saddr,
+    let ret = unsafe { bindings::kernel_connect(socket, &mut saddr,
             mem::size_of::<bindings::sockaddr_in>().try_into().unwrap(),
-            (bindings::_IOC_READ | bindings::_IOC_WRITE) as ffi::c_int);
+            (bindings::_IOC_READ | bindings::_IOC_WRITE) as ffi::c_int) };
     pr_info!("connect returned: {:?}\n", ret);
 
     let stream = TcpStream { sock: socket };
