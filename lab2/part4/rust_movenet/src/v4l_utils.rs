@@ -11,7 +11,7 @@ use std::os::unix::io::RawFd;
 const VIDIOC_QUERYCAP_MAGIC: u8 = 'V' as u8;
 const VIDIOC_QUERYCAP_TYPE_MODE: u8 = 0;
 
-const V4L2_BUF_TYPE_VIDEO_CAPTURE: u32 = 1;
+pub const V4L2_BUF_TYPE_VIDEO_CAPTURE: u32 = 1;
 const V4L2_MEMORY_MMAP: u32 = 1;
 const VIDIOC_G_FMT_MAGIC: u8 = 'V' as u8;
 const VIDIOC_G_FMT_TYPE_MODE: u8 = 4;
@@ -281,7 +281,7 @@ impl Default for v4l2_buffer {
 
 
 pub struct buffer {
-    pub start: * mut libc::c_void,
+    pub start: *mut libc::c_void,
     pub length: usize
 }
 
@@ -314,7 +314,6 @@ pub fn map_buffer(media_fd: &RawFd, resbuf: &mut buffer, reqbuf: &v4l2_requestbu
 
     resbuf.length = buffer.length as usize; /* remember for munmap() */
     println!("{:?}", resbuf.length);
-    println!("buffer offset: {:?}", buffer.offset);
 
     resbuf.start = unsafe {
         libc::mmap( ptr::null_mut(), resbuf.length,

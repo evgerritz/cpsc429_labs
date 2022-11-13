@@ -1,10 +1,9 @@
 use opencv::highgui::imshow;
 use opencv::highgui::wait_key;
 use opencv::core::*;
-//use opencv::imgcodecs::{imdecode, IMREAD_COLOR};
 
 use libc;
-use std::{fs::File, os::unix::prelude::AsRawFd, str, ptr, thread};
+use std::{fs::File, os::unix::prelude::AsRawFd, str, ptr, thread, io};
 use std::time::{Instant, Duration};
 use nix::{sys::ioctl, ioctl_read, ioctl_readwrite};
 
@@ -16,15 +15,26 @@ use v4l_utils::*;
 
 mod client;
 use client::Server;
+use std::process;
 
+struct kernel_msg {
+    start_pfn: u64,
+    num_pfns: u64,
+    my_type: *mut i32,
+    buffer: *mut v4l2_buffer,
+}
 
 fn main() {
+    println!("My pid is {}", process::id());
     let debug = false;
     let mut file = File::options()
 		.write(true)
 		.read(true)
 		.open("/dev/video2")
 		.unwrap();
+
+    let mut my_pagemap = File::open("/proc/self/pagemap").expect("couldn't open pagemap");
+    let mut camera_module = File::open("/dev/rust_camera").expect("couldn't open rust camera module");
 
     let media_fd = file.as_raw_fd();
     if debug {
@@ -48,12 +58,16 @@ fn main() {
     request_buffer(&media_fd, &mut reqbuf);
 
     map_buffer(&media_fd, &mut resbuf, &reqbuf);
-    
+    let mut va: u64 = unsafe{&(*resbuf.start) as *const _ as u64};
+    let start_pfn = va_to_pfn(&mut my_pagemap, va);
+    let num_pfns = resbuf.length as u64 / PAGESIZE;
+    let my_type = V4L2_BUF_TYPE_VIDEO_CAPTURE as i32;
     let mut qbuffer: v4l2_buffer = Default::default();
-    queue_buffer(&media_fd, &mut qbuffer);
-    start_streaming(&media_fd);
+    
+    //queue_buffer(&media_fd, &mut qbuffer);
+    //start_streaming(&media_fd);
 
-    const IMG_WIDTH: i32 = 320;
+    /*const IMG_WIDTH: i32 = 320;
     const IMG_HEIGHT: i32 = 180;
 
     const LEN_INPUT: usize = 118784;
@@ -102,10 +116,10 @@ fn main() {
     // calculate and print fps
     let total_time = now.elapsed();
     let total_time: f64 = (total_time.as_secs() as f64) + (total_time.subsec_nanos() as f64) / 1e9;
-    println!("fps: {:?} ", (count as f64)/total_time);
+    println!("fps: {:?} ", (count as f64)/total_time);*/
 
     // clean up
-    stop_streaming(&media_fd);
+    //stop_streaming(&media_fd);
     destroy_buffer(&mut resbuf);
 }
 

@@ -4,6 +4,29 @@ use opencv::{
 	core::*,
 };
 
+use libc;
+use std::fs::File;
+use std::io::Read;
+use std::io::Seek;
+use std::io::SeekFrom;
+
+pub const PAGESIZE: u64 = 4096;
+const PAGEMAP_ENTRY_SIZE: u64 = 8;
+const PFN_MASK: u64 = 0x7fffffffffffff;
+
+// adapted from: http://fivelinesofcode.blogspot.com/2014/03/how-to-translate-virtual-to-physical.html
+pub fn va_to_pfn(pagemap_f: &mut File, vaddr: u64) -> u64 {
+    let mut pfn: u64= 0;
+    let offset: u64 = vaddr / PAGESIZE as u64 * PAGEMAP_ENTRY_SIZE;
+    pagemap_f.seek(SeekFrom::Start(offset)).expect("seek failed"); 
+    let mut page_bytes = [0u8; 8];
+    pagemap_f.read_exact(&mut page_bytes).expect("failed to read pagemap entry");
+
+    let entry = u64::from_ne_bytes(page_bytes);
+    pfn = entry & PFN_MASK;
+    pfn
+}
+
 pub fn resize_with_padding(img: &Mat, new_shape: [i32;2]) -> Mat {
 	let img_shape = [img.cols(), img.rows()];
 	let width: i32;
