@@ -222,7 +222,7 @@ fn start_capture(shared: RefBorrow<'_, Device>) {
         dequeue_buffer(camera_filp, msg.buffer);
         {
             let mut output = shared.output.lock();
-            stream.read(&mut *output, true).expect("could not receive bytes in buffer");
+            stream.read(&mut unsafe {*output}, true).expect("could not receive bytes in buffer");
             pr_info!("{:?}", *output);
         }
     }
