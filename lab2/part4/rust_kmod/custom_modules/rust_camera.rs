@@ -21,7 +21,7 @@ module! {
 const OUT_BUF_SIZE: usize = 17*3;
 
 struct RustCamera {
-    _dev: Pin<Box<miscdev::Registration<RustMymem>>>,
+    _dev: Pin<Box<miscdev::Registration<RustCamera>>>,
 }
 
 struct Device {
@@ -38,7 +38,7 @@ impl kernel::Module for RustCamera {
             output: Mutex::new([0u8; OUT_BUF_SIZE]),
         })?;
 
-        Ok(RustMymem {                  // 438 == 0o666
+        Ok(RustCamera {                  // 438 == 0o666
             _dev: miscdev::Options::new().mode(438).register_new(fmt!("{name}"), state)?,
         })
     }
@@ -64,7 +64,7 @@ impl file::Operations for RustCamera {
         data: &mut impl IoBufferWriter, offset: u64 ) -> Result<usize> {
         let buffer = shared.output.lock();
 
-        Ok(num_bytes)
+        Ok(0)
     }
 
     fn write( shared: RefBorrow<'_, Device>, _: &File,
