@@ -137,6 +137,9 @@ impl file::Operations for RustCamera {
 
         let fname = c_str!("/dev/video2");
         let mut camera_file = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
+        pr_info!("my_type: {:?}\n", msg.my_type);
+
+        start_streaming(&mut camera_file, msg.my_type);
         Ok(0)
     }
 }
