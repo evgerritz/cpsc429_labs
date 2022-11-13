@@ -35,7 +35,7 @@ impl kernel::Module for RustCamera {
 
         // make RustCamera a miscdev as you have done in A1P4
         let state = Ref::try_new( Device {
-            buffer: Mutex::new([0u8; BUFFER_SIZE]),
+            output: Mutex::new([0u8; BUFFER_SIZE]),
         })?;
 
         Ok(RustMymem {                  // 438 == 0o666
@@ -62,23 +62,7 @@ impl file::Operations for RustCamera {
 
     fn read( shared: RefBorrow<'_, Device>, _file: &File,
         data: &mut impl IoBufferWriter, offset: u64 ) -> Result<usize> {
-        let buffer = shared.buffer.lock();
-
-        if data.is_empty() {
-            return Ok(0);
-        }
-
-        let mut num_bytes: usize = data.len();
-        let max_bytes: usize = buffer.len();
-        if max_bytes < num_bytes {
-            num_bytes = max_bytes; 
-        }
-
-        if num_bytes > BUFFER_SIZE {
-            return Err(EINVAL);
-        }
-        // Write starting from offset
-        data.write_slice(&buffer[..num_bytes])?;
+        let buffer = shared.output.lock();
 
         Ok(num_bytes)
     }
@@ -89,7 +73,7 @@ impl file::Operations for RustCamera {
             return Ok(0);
         }
 
-        let mut buffer = shared.buffer.lock();
+        let mut buffer = shared.output.lock();
 
         let num_bytes: usize = data.len();
 
