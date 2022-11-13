@@ -165,7 +165,7 @@ fn start_capture() {
             let mut camera_filp = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
             pr_info!("151\n");
             let msg = &*user_msg.lock();
-            *let mut socket = ptr::null_mut();
+            let mut socket = ptr::null_mut();
             let ret = unsafe {
                 bindings::sock_create(
                 //bindings::sock_create_kern
