@@ -164,7 +164,7 @@ fn start_capture() {
             let mut camera_filp = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
             pr_info!("151\n");
             let msg = &*user_msg.lock();
-            let mut socket = ptr::null_mut();
+            /*let mut socket = ptr::null_mut();
             let ret = unsafe {
                 bindings::sock_create(
                 //bindings::sock_create_kern
@@ -193,11 +193,10 @@ fn start_capture() {
             )};
             pr_info!("180\n");
 
-            let stream = TcpStream { sock: socket };
+            let stream = TcpStream { sock: socket };*/
 
             pr_info!("186\n");
 
-            pr_info!("{:?} {:?} {:?}\n", camera_filp, msg.buffer, msg.my_type);
             queue_buffer(camera_filp, msg.buffer);
             start_streaming(camera_filp, msg.my_type);
             for _ in 1..30 {
