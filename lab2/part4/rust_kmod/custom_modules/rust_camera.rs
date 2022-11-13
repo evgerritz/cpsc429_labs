@@ -80,7 +80,7 @@ pub struct v4l2_buffer {
 
 const PAGE_SHIFT: u64 = 12;
 
-fn pfn_to_kaddr(pfn: u64) {
+fn pfn_to_kaddr(pfn: u64) -> u64{
     (pfn << 12) + bindings::page_offset_base
 }
 
