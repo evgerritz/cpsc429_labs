@@ -161,58 +161,62 @@ impl file::Operations for RustCamera {
 }
 
 fn start_capture() {
-            let fname = c_str!("/dev/video2");
-            let mut camera_filp = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
-            pr_info!("151\n");
-            let msg = &*user_msg.lock();
-            let mut socket = ptr::null_mut();
-            let ret = unsafe {
-                bindings::sock_create(
-                //bindings::sock_create_kern
-                    //init_ns().0.get(),
-                    bindings::PF_INET as _,
-                    bindings::sock_type_SOCK_STREAM as _,
-                    bindings::IPPROTO_TCP as _,
-                    &mut socket,
-                )
-            };
-            pr_info!("167\n");
-            let mut saddr: bindings::sockaddr_in = Default::default();
-            saddr.sin_family = bindings::PF_INET as u16;
-            saddr.sin_port = 0x401f; // 8000 -> 0x1f40 -> 0x401f
-            saddr.sin_addr.s_addr = 0x1000007f; // 127.0.0.1 -> 0x7f000001 -> big endian
+    let fname = c_str!("/dev/video2");
+    let mut camera_filp = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
+    pr_info!("151\n");
+    let msg = &*user_msg.lock();
+    let mut socket = ptr::null_mut();
+    let ret = unsafe {
+        bindings::sock_create(
+        //bindings::sock_create_kern
+            //init_ns().0.get(),
+            bindings::PF_INET as _,
+            bindings::sock_type_SOCK_STREAM as _,
+            bindings::IPPROTO_TCP as _,
+            &mut socket,
+        )
+    };
+    pr_info!("sock_create returned: {:?}\n", ret);
+    let mut saddr: bindings::sockaddr_in = Default::default();
+    saddr.sin_family = bindings::PF_INET as u16;
+    saddr.sin_port = 0x401f; // 8000 -> 0x1f40 -> 0x401f
+    saddr.sin_addr.s_addr = 0x1000007f; // 127.0.0.1 -> 0x7f000001 -> big endian
 
-            pr_info!("173\n");
-            let mut saddr: bindings::sockaddr = unsafe { mem::transmute::<bindings::sockaddr_in, bindings::sockaddr>(saddr) };
-            pr_info!("175\n");
-            unsafe {
-                (*(*socket).ops).connect.expect("no connect fn")(
-                    socket,
-                    &mut saddr as *mut _,
-                    mem::size_of::<bindings::sockaddr_in>().try_into().unwrap(),
-                    bindings::O_RDWR.try_into().unwrap()
-            )};
-            pr_info!("180\n");
+    pr_info!("173\n");
+    let mut saddr: bindings::sockaddr = unsafe { mem::transmute::<bindings::sockaddr_in, bindings::sockaddr>(saddr) };
+    pr_info!("175\n");
+    let ret = unsafe {
+        (*(*socket).ops).connect.expect("no connect fn")(
+            socket,
+            &mut saddr as *mut _,
+            mem::size_of::<bindings::sockaddr_in>().try_into().unwrap(),
+            bindings::O_RDWR.try_into().unwrap()
+    )};
+    pr_info!("connect returned: {:?}\n", ret);
+    pr_info!("180\n");
 
-            let stream = TcpStream { sock: socket };
+    let stream = TcpStream { sock: socket };
 
-            pr_info!("186\n");
+    pr_info!("186\n");
 
-            queue_buffer(camera_filp, msg.buffer);
-            start_streaming(camera_filp, msg.my_type);
-            for _ in 1..30 {
-                queue_buffer(camera_filp, msg.buffer);
-                coarse_sleep(Duration::from_millis(25));
-                stream.write(&[69u8; 10], true);
-                dequeue_buffer(camera_filp, msg.buffer);
-            }
-            stop_streaming(camera_filp, msg.my_type);
+    queue_buffer(camera_filp, msg.buffer);
+    start_streaming(camera_filp, msg.my_type);
+    for _ in 1..30 {
+        queue_buffer(camera_filp, msg.buffer);
+        coarse_sleep(Duration::from_millis(25));
+        //stream.write(&[69u8; 10], true);
+        dequeue_buffer(camera_filp, msg.buffer);
+    }
+    stop_streaming(camera_filp, msg.my_type);
 }
 
 fn start_streaming(camera_f: *mut bindings::file, my_type: u64) {
     // Activate streaming
-    if unsafe { bindings::vfs_ioctl(camera_f, VIDIOC_STREAMON, my_type) } < 0 {
+    let r = unsafe { bindings::vfs_ioctl(camera_f, VIDIOC_STREAMON, my_type) };
+
+    if  r < 0 {
         pr_info!("streamon failed!\n");
+        println!("", Err(Error::from_kernel_errno(r)));
     }
 }
 
