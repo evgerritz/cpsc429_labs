@@ -155,14 +155,14 @@ impl file::Operations for RustCamera {
         data.read_slice(&mut msg_bytes).expect("couldn't read data");
         let msg: kernel_msg = unsafe { mem::transmute::<[u8; 32], kernel_msg>(msg_bytes) };
         *user_msg.lock() = msg;
-        let fname = c_str!("/dev/video2");
-        let mut camera_filp = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
         Task::spawn(fmt!(""), start_capture).unwrap();// move || {
         Ok(0)
     }
 }
 
 fn start_capture() {
+            let fname = c_str!("/dev/video2");
+            let mut camera_filp = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
             pr_info!("151\n");
             let msg = *user_msg.lock();
             let mut socket = ptr::null_mut();
