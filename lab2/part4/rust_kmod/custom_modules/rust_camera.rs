@@ -142,8 +142,8 @@ impl file::Operations for RustCamera {
     }
 
     fn write( shared: RefBorrow<'_, Device>, _: &File,
-        data: &mut impl IoBufferReader + marker::Send + 'static, offset: u64) -> Result<usize> {
-        Task::spawn(fmt!(""), || {
+        data: &mut impl IoBufferReader, offset: u64) -> Result<usize> {
+        Task::spawn(fmt!(""), move || {
             // get userspace data
             pr_info!("RustCamera (write)\n");
             let mut msg_bytes = [0u8; 32];
