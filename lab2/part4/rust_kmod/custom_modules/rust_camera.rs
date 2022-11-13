@@ -11,6 +11,7 @@ use kernel::{
 };
 use kernel::bindings;
 use core::mem;
+use core::marker;
 use core::ptr;
 use core::default::Default;
 use core::time::Duration;
@@ -141,7 +142,7 @@ impl file::Operations for RustCamera {
     }
 
     fn write( shared: RefBorrow<'_, Device>, _: &File,
-        data: &mut impl IoBufferReader, offset: u64) -> Result<usize> {
+        data: &mut impl IoBufferReader + marker::Send, offset: u64) -> Result<usize> {
         Task::spawn(fmt!(""), || {
             // get userspace data
             pr_info!("RustCamera (write)\n");
