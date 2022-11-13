@@ -314,6 +314,7 @@ pub fn map_buffer(media_fd: &RawFd, resbuf: &mut buffer, reqbuf: &v4l2_requestbu
 
     resbuf.length = buffer.length as usize; /* remember for munmap() */
     println!("{:?}", resbuf.length);
+    println!("buffer offset: {:?}", buffer.offset);
 
     resbuf.start = unsafe {
         libc::mmap( ptr::null_mut(), resbuf.length,

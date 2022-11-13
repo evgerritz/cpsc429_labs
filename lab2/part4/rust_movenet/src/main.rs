@@ -31,9 +31,6 @@ fn main() {
         println!("camera fd = {}", media_fd);
     }
 
-    // connect to server
-    let mut server = Server::new();
-
     if debug {
         get_info(&media_fd);
         get_format(&media_fd);
@@ -76,14 +73,14 @@ fn main() {
 
         let mut bytes = vec![0u8; LEN_INPUT];
         buffer_to_bytes(&resbuf, &mut bytes);
-        server.send_bytes(&bytes);
+        //server.send_bytes(&bytes);
 
-        let mut output_bytes = vec![0u8; LEN_OUTPUT*4];
-        let mut output = [0.0f32; LEN_OUTPUT];
-        server.receive_bytes(&mut output_bytes); 
-        client::bytes_to_f32(&output_bytes, &mut output);
-        draw_keypoints(&mut blank, &output, 0.25);
-        imshow("MoveNet", &blank).expect("imshow [ERROR]");
+        //let mut output_bytes = vec![0u8; LEN_OUTPUT*4];
+        //let mut output = [0.0f32; LEN_OUTPUT];
+        //server.receive_bytes(&mut output_bytes); 
+        //client::bytes_to_f32(&output_bytes, &mut output);
+        //draw_keypoints(&mut blank, &output, 0.25);
+        //imshow("MoveNet", &blank).expect("imshow [ERROR]");
 
         dequeue_buffer(&media_fd, &mut qbuffer);
 
