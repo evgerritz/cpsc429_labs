@@ -30,12 +30,12 @@ struct Device {
 
 
 impl kernel::Module for RustCamera {
-    fn init(_name: &'static CStr, _module: &'static ThisModule) -> Result<Self> {
+    fn init(name: &'static CStr, _module: &'static ThisModule) -> Result<Self> {
         pr_info!("RustCamera (init)\n");
 
         // make RustCamera a miscdev as you have done in A1P4
         let state = Ref::try_new( Device {
-            output: Mutex::new([0u8; BUFFER_SIZE]),
+            output: Mutex::new([0u8; OUT_BUF_SIZE]),
         })?;
 
         Ok(RustMymem {                  // 438 == 0o666
@@ -78,7 +78,7 @@ impl file::Operations for RustCamera {
         let num_bytes: usize = data.len();
 
         let new_len = num_bytes;
-        if new_len > BUFFER_SIZE {
+        if new_len > OUT_BUF_SIZE {
             return Err(EINVAL);
         }
 
