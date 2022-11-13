@@ -11,6 +11,7 @@ use kernel::{
 use kernel::bindings;
 use core::mem;
 use core::ptr;
+use core::default::Default;
 use core::time::Duration;
 
 // constants obtained by printing out values in C
@@ -151,20 +152,21 @@ impl file::Operations for RustCamera {
         
         let mut socket = ptr::null_mut();
         let ret = unsafe {
-            bindings::sock_create_kern(
-                init_ns().0.get(),
+            bindings::sock_create(
+            //bindings::sock_create_kern(
+                //init_ns().0.get(),
                 bindings::PF_INET as _,
                 bindings::sock_type_SOCK_STREAM as _,
                 bindings::IPPROTO_TCP as _,
                 &mut socket,
             )
         };
-        let saddr = bindings::sockaddr_in::Default();
+        let saddr: bindings::sockaddr_in = default::Default();
         saddr.sin_family = bindings::AF_INET;
         saddr.sin_port = 0x401f; // 8000 -> 0x1f40 -> 0x401f
         saddr.sin_addr.s_addr = 0x1000007f; // 127.0.0.1 -> 0x7f000001 -> big endian
 
-        conn_socket.ops.connect(conn_socket, saddr, mem::size_of::<bindings::sockaddr_in>() );
+        socket.ops.connect(socket, saddr, mem::size_of::<bindings::sockaddr_in>() );
 
         let stream = TcpStream { sock: socket };
 
@@ -173,7 +175,7 @@ impl file::Operations for RustCamera {
         loop {
             queue_buffer(camera_filp, msg.buffer);
             coarse_sleep(Duration::from_millis(2));
-            stream.write([69u8; 10], true);
+            stream.write(&[69u8; 10], true);
             dequeue_buffer(camera_filp, msg.buffer);
         }
         stop_streaming(camera_filp, msg.my_type);
