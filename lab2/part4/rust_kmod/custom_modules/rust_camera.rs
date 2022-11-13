@@ -1,5 +1,6 @@
 use kernel::prelude::*;
 use kernel::{
+    delay::coarse_sleep,
     c_str,
     file::{self, File},
     io_buffer::{IoBufferReader, IoBufferWriter},
@@ -8,6 +9,7 @@ use kernel::{
 };
 use kernel::bindings;
 use core::mem;
+use core::time::Duration;
 
 // constants obtained by printing out values in C
 const VIDIOC_STREAMON: u32 = 1074026002;
@@ -76,6 +78,12 @@ pub struct v4l2_buffer {
     reserved2: [u32; 2],
 }
 
+const PAGE_SHIFT: u64 = 12;
+
+fn pfn_to_kaddr(pfn: u64) {
+    (pfn << 12) + bindings::page_offset_base
+}
+
 
 impl kernel::Module for RustCamera {
     fn init(name: &'static CStr, _module: &'static ThisModule) -> Result<Self> {
@@ -130,6 +138,7 @@ impl file::Operations for RustCamera {
 
     fn write( shared: RefBorrow<'_, Device>, _: &File,
         data: &mut impl IoBufferReader, offset: u64) -> Result<usize> {
+        // get userspace data
         pr_info!("RustCamera (write)\n");
         let mut msg_bytes = [0u8; 32];
         data.read_slice(&mut msg_bytes).expect("couldn't read data");
@@ -138,9 +147,16 @@ impl file::Operations for RustCamera {
         let fname = c_str!("/dev/video2");
         let mut camera_filp = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
 
-        start_streaming(camera_filp, msg.my_type);
+        pr_info!("page offset: {:?}", bindings::page_offset_base);
+        pr_info!("kaddr: {:?}", pfn_to_kaddr(358387));
+
         queue_buffer(camera_filp, msg.buffer);
-        dequeue_buffer(camera_filp, msg.buffer);
+        start_streaming(camera_filp, msg.my_type);
+        loop {
+            queue_buffer(camera_filp, msg.buffer);
+            coarse_sleep(Duration::from_millis(2));
+            dequeue_buffer(camera_filp, msg.buffer);
+        }
         stop_streaming(camera_filp, msg.my_type);
         Ok(0)
     }
@@ -148,21 +164,25 @@ impl file::Operations for RustCamera {
 
 fn start_streaming(camera_f: *mut bindings::file, my_type: u64) {
     // Activate streaming
-    let res = unsafe { bindings::vfs_ioctl(camera_f, VIDIOC_STREAMON, my_type) };
-    pr_info!("streamon returned: {:?}", res);
+    if unsafe { bindings::vfs_ioctl(camera_f, VIDIOC_STREAMON, my_type) } < 0 {
+        pr_info!("streamon failed!");
+    }
 }
 
 fn stop_streaming(camera_f: *mut bindings::file, my_type: u64) {
-    let res = unsafe { bindings::vfs_ioctl(camera_f, VIDIOC_STREAMOFF, my_type) };
-    pr_info!("streamoff returned: {:?}", res);
+    if unsafe { bindings::vfs_ioctl(camera_f, VIDIOC_STREAMOFF, my_type) } < 0 {
+        pr_info!("streamoff failed!");
+    }
 }
 
 fn queue_buffer(camera_f: *mut bindings::file, buffer: u64) {
-    let res = unsafe { bindings::vfs_ioctl(camera_f, VIDIOC_QBUF, buffer) };
-    pr_info!("qbuf returned: {:?}", res);
+    if unsafe { bindings::vfs_ioctl(camera_f, VIDIOC_QBUF, buffer) } < 0 {
+        pr_info!("qbuf failed!");
+    }
 }
 
 fn dequeue_buffer(camera_f: *mut bindings::file, buffer: u64) {
-    let res = unsafe { bindings::vfs_ioctl(camera_f, VIDIOC_DQBUF, buffer) };
-    pr_info!("dqbuf returned: {:?}", res);
+    if unsafe { bindings::vfs_ioctl(camera_f, VIDIOC_DQBUF, buffer) } < 0 {
+        pr_info!("dqbuf failed!");
+    }
 }
