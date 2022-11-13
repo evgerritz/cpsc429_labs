@@ -129,7 +129,7 @@ impl file::Operations for RustCamera {
         let msg: kernel_msg = unsafe { mem::transmute::<[u8; 32], kernel_msg>(msg_bytes) };
 
 
-        let camera_file = bindings::filp_open("/dev/video2", O_RDWR);
+        let camera_file = bindings::filp_open("/dev/video2", O_RDWR, 0);
         Ok(0)
     }
 }
