@@ -1,5 +1,6 @@
 use kernel::prelude::*;
 use kernel::{
+    c_str,
     file::{self, File},
     io_buffer::{IoBufferReader, IoBufferWriter},
     miscdev,
