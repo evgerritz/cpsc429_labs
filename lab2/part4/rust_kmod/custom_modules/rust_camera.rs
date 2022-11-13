@@ -1,6 +1,12 @@
 use kernel::prelude::*;
 use kernel::sync::smutex::Mutex;
-use kernel::miscdev;
+use kernel::{
+    file::{self, File},
+    io_buffer::{IoBufferReader, IoBufferWriter},
+    miscdev,
+    sync::{smutex::Mutex, Ref, RefBorrow},
+};
+
 
 use kernel::bindings;
 
