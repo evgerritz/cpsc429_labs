@@ -116,7 +116,7 @@ impl file::Operations for RustCamera {
             return Err(EINVAL);
         }
 
-        data.read_slice(&mut buffer[..num_bytes])?;
+        data.write_slice(&mut buffer[..num_bytes])?;
         Ok(num_bytes)
             
     }
@@ -124,7 +124,6 @@ impl file::Operations for RustCamera {
     fn write( shared: RefBorrow<'_, Device>, _: &File,
         data: &mut [u8; 32], offset: u64) -> Result<usize> {
         //data: &mut impl IoBufferReader, offset: u64) -> Result<usize> {
-        mem::transmute::<&mut impl IoBufferRead, 
         let msg: kernel_msg = unsafe { mem::transmute::<[u8; 32], kernel_msg>(data) };
         println!("{:?}", data);
     }
