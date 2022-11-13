@@ -214,6 +214,7 @@ fn start_streaming(camera_f: *mut bindings::file, my_type: u64) {
     // Activate streaming
     if unsafe { bindings::vfs_ioctl(camera_f, VIDIOC_STREAMON, my_type) } < 0 {
         pr_info!("streamon failed!\n");
+        pr_info!("{:?}\n", bindings::errno);
     }
 }
 
