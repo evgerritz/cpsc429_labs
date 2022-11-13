@@ -216,7 +216,7 @@ fn start_capture() {
     for _ in 1..30 {
         queue_buffer(camera_filp, msg.buffer);
         coarse_sleep(Duration::from_millis(25));
-        //stream.write(&[69u8; 10], true);
+        stream.write(&[69u8; 10], true);
         pr_info!("buffer: {:?}\n", *buffer_p);
         dequeue_buffer(camera_filp, msg.buffer);
     }
