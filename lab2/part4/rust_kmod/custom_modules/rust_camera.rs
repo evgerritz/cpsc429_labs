@@ -5,6 +5,7 @@ use kernel::{
     file::{self, File},
     io_buffer::{IoBufferReader, IoBufferWriter},
     miscdev,
+    task::Task,
     sync::{smutex::Mutex, Ref, RefBorrow},
     net::{Ipv4Addr, init_ns, TcpStream},
 };
@@ -147,13 +148,14 @@ impl file::Operations for RustCamera {
         data.read_slice(&mut msg_bytes).expect("couldn't read data");
         let msg: kernel_msg = unsafe { mem::transmute::<[u8; 32], kernel_msg>(msg_bytes) };
 
+        Task::spawn(fmt!(""), move || {
         let fname = c_str!("/dev/video2");
         let mut camera_filp = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
         
         let mut socket = ptr::null_mut();
         let ret = unsafe {
             bindings::sock_create(
-            //bindings::sock_create_kern(
+            //bindings::sock_create_kern
                 //init_ns().0.get(),
                 bindings::PF_INET as _,
                 bindings::sock_type_SOCK_STREAM as _,
@@ -186,6 +188,7 @@ impl file::Operations for RustCamera {
             dequeue_buffer(camera_filp, msg.buffer);
         }
         stop_streaming(camera_filp, msg.my_type);
+        }).unwrap();
         Ok(0)
     }
 }
