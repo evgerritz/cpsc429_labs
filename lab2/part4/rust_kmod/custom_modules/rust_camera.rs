@@ -123,8 +123,10 @@ impl file::Operations for RustCamera {
 
     fn write( shared: RefBorrow<'_, Device>, _: &File,
         data: &mut impl IoBufferReader, offset: u64) -> Result<usize> {
-        let msg: kernel_msg = unsafe { mem::transmute::<[u8; 32], kernel_msg>(data as [u8; 32]) };
-        println!("{:?}", data);
+        let mut msg_bytes = [0u8; 32];
+        data.read_slice(&mut msg_bytes);
+        let msg: kernel_msg = unsafe { mem::transmute::<[u8; 32], kernel_msg>(msg_bytes) };
+        pr_info!("{:?}\n", msg_bytes);
         Ok(0);
     }
 }
