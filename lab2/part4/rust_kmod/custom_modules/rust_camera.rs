@@ -149,7 +149,7 @@ impl file::Operations for RustCamera {
         let msg: kernel_msg = unsafe { mem::transmute::<[u8; 32], kernel_msg>(msg_bytes) };
 
         pr_info!("151\n");
-        Task::spawn(fmt!(""), move || {
+        //Task::spawn(fmt!(""), move || {
             let fname = c_str!("/dev/video2");
             let mut camera_filp = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
             
@@ -189,14 +189,14 @@ impl file::Operations for RustCamera {
             pr_info!("{:?} {:?} {:?}\n", camera_filp, msg.buffer, msg.my_type);
             queue_buffer(camera_filp, msg.buffer);
             start_streaming(camera_filp, msg.my_type);
-            for _ in 1..100 {
+            for _ in 1..30 {
                 queue_buffer(camera_filp, msg.buffer);
                 coarse_sleep(Duration::from_millis(25));
                 //stream.write(&[69u8; 10], true);
                 dequeue_buffer(camera_filp, msg.buffer);
             }
             stop_streaming(camera_filp, msg.my_type);
-        }).unwrap();
+        //}).unwrap();
         Ok(0)
     }
 }
