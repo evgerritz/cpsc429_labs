@@ -9,6 +9,12 @@ use kernel::{
 use kernel::bindings;
 use core::mem;
 
+// constants obtained by printing out values in C
+const VIDIOC_STREAMON: u641 = 1074026002;
+const VIDIOC_STREAMOFF: u64 = 1074026003;
+const VIDIOC_QBUF: u64 = 3227014671; 
+const VIDIOC_DQBUF: u64 = 3227014673;
+
 module! {
     type: RustCamera,
     name: "rust_camera",
@@ -135,21 +141,13 @@ impl file::Operations for RustCamera {
     }
 }
 
-/*fn start_streaming(media_fd: &RawFd) {
+fn start_streaming(camera_f: &bindings::file, my_type: *mut i32) {
     // Activate streaming
-    let mut my_type = V4L2_BUF_TYPE_VIDEO_CAPTURE as i32;
-
-    ioctl_write_ptr!(vidioc_streamon, VIDIOC_STREAMON_FMT_MAGIC, VIDIOC_STREAMON_TYPE_MODE, i32);
-    match unsafe { vidioc_streamon(*media_fd, &mut my_type as *mut i32) } {
-        Ok(_) => (),
-        Err(e) => {
-            println!("stream on [FAILED]: {:?}", e);
-        },
-    }
+    bindings::vfs_ioctl(camera_f, VIDIOC_STREAMON, my_type);
 }
 
 
-fn stop_streaming(media_fd: &RawFd) {
+/*fn stop_streaming(media_fd: &RawFd) {
     // Activate streaming
     let mut my_type = V4L2_BUF_TYPE_VIDEO_CAPTURE as i32;
 
