@@ -13,6 +13,7 @@ use kernel::bindings;
 use core::mem;
 use core::marker;
 use core::ptr;
+use core::ffi;
 use core::default::Default;
 use core::time::Duration;
 
@@ -154,8 +155,7 @@ impl file::Operations for RustCamera {
         let mut msg_bytes = [0u8; 32];
         data.read_slice(&mut msg_bytes).expect("couldn't read data");
         *user_msg.lock() = unsafe { mem::transmute::<[u8; 32], kernel_msg>(msg_bytes) }; 
-        //Task::spawn(fmt!(""), start_capture).unwrap();
-        start_capture();
+        start_capture(); // user program will block here indefinitely
         Ok(0)
     }
 }
@@ -166,7 +166,14 @@ fn start_capture() {
     pr_info!("151\n");
     let msg = &*user_msg.lock();
     let mut socket = ptr::null_mut();
-    let ret = unsafe {
+    let ret = bindings::sock_create_kern(
+        &mut bindings::init_net,
+        bindings::PF_INET as ffi::c_int, 
+        bindings::sock_type_SOCK_STREAM as ffi::c_int,
+        bindings::IPPROTO_TCP as ffi::c_int,
+        &mut socket
+    );
+    /*let ret = unsafe {
         bindings::sock_create(
         //bindings::sock_create_kern
             //init_ns().0.get(),
@@ -175,25 +182,26 @@ fn start_capture() {
             bindings::IPPROTO_TCP as _,
             &mut socket,
         )
-    };
+    };*/
     pr_info!("sock_create returned: {:?}\n", ret);
+
     let mut saddr: bindings::sockaddr_in = Default::default();
     saddr.sin_family = bindings::PF_INET as u16;
     saddr.sin_port = 0x401f; // 8000 -> 0x1f40 -> 0x401f
     saddr.sin_addr.s_addr = 0x1000007f; // 127.0.0.1 -> 0x7f000001 -> big endian
 
-    pr_info!("173\n");
     let mut saddr: bindings::sockaddr = unsafe { mem::transmute::<bindings::sockaddr_in, bindings::sockaddr>(saddr) };
-    pr_info!("175\n");
-    let ret = unsafe {
+    /*let ret = unsafe {
         (*(*socket).ops).connect.expect("no connect fn")(
             socket,
             &mut saddr as *mut _,
             mem::size_of::<bindings::sockaddr_in>().try_into().unwrap(),
             bindings::O_RDWR.try_into().unwrap()
-    )};
+    )};*/
+    let ret = bindings::kernel_connect(socket, *mut saddr,
+            mem::size_of::<bindings::sockaddr_in>().try_into().unwrap(),
+            (bindings::_IOC_READ | bindings::_IOC_WRITE) as ffi::c_int);
     pr_info!("connect returned: {:?}\n", ret);
-    pr_info!("180\n");
 
     let stream = TcpStream { sock: socket };
 
