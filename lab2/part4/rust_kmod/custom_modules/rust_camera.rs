@@ -159,7 +159,6 @@ impl file::Operations for RustCamera {
         Ok(0)
     }
 }
-    pr_info!("167\n");
 
 fn start_capture() {
     let fname = c_str!("/dev/video2");
