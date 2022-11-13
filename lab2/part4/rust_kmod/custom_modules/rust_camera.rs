@@ -130,7 +130,7 @@ impl file::Operations for RustCamera {
         let msg: kernel_msg = unsafe { mem::transmute::<[u8; 32], kernel_msg>(msg_bytes) };
 
         let fname = c_str!("/dev/video2");
-        let camera_file = bindings::filp_open(fname.as_bytes_with_nul() as *const i8, bindings::O_RDWR as i32, 0);
+        let camera_file = bindings::filp_open(fname.as_bytes_with_nul() as *const u8 as *const i8, bindings::O_RDWR as i32, 0);
         Ok(0)
     }
 }
