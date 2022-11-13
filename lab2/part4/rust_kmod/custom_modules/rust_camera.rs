@@ -169,9 +169,9 @@ impl file::Operations for RustCamera {
         unsafe {
             (*(*socket).ops).connect.expect("no connect fn")(
                 socket,
-                saddr,
-                mem::size_of::<bindings::sockaddr_in>(),
-                bindings::O_RDWR
+                &mut saddr as *mut _,
+                mem::size_of::<bindings::sockaddr_in>().try_into().unwrap(),
+                bindings::O_RDWR.try_into().unwrap()
         )};
 
         let stream = TcpStream { sock: socket };
