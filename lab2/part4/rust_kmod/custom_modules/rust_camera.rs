@@ -143,7 +143,7 @@ impl file::Operations for RustCamera {
 
 fn start_streaming(camera_f: &mut bindings::file, my_type: u64) {
     // Activate streaming
-    bindings::vfs_ioctl(camera_f as *mut bindings::file, VIDIOC_STREAMON, my_type);
+    unsafe { bindings::vfs_ioctl(camera_f as *mut bindings::file, VIDIOC_STREAMON, my_type) };
 }
 
 
