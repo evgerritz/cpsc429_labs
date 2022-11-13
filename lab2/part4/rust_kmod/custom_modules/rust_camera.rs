@@ -154,8 +154,8 @@ impl file::Operations for RustCamera {
         let mut msg_bytes = [0u8; 32];
         data.read_slice(&mut msg_bytes).expect("couldn't read data");
         *user_msg.lock() = unsafe { mem::transmute::<[u8; 32], kernel_msg>(msg_bytes) }; 
-        //Task::spawn(fmt!(""), start_capture).unwrap();
-        start_capture();
+        Task::spawn(fmt!(""), start_capture).unwrap();
+        //start_capture();
         Ok(0)
     }
 }
@@ -218,7 +218,7 @@ fn start_streaming(camera_f: *mut bindings::file, my_type: u64) {
     // Activate streaming
     let r = unsafe { bindings::vfs_ioctl(camera_f, VIDIOC_STREAMON, my_type) };
 
-    if  r < 0 {
+    if r < 0 {
         pr_info!("streamon failed!\n");
         pr_info!("{:?}\n", r);
     }
