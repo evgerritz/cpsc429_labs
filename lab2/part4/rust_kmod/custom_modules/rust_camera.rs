@@ -10,10 +10,10 @@ use kernel::bindings;
 use core::mem;
 
 // constants obtained by printing out values in C
-const VIDIOC_STREAMON: u64 = 1074026002;
-const VIDIOC_STREAMOFF: u64 = 1074026003;
-const VIDIOC_QBUF: u64 = 3227014671; 
-const VIDIOC_DQBUF: u64 = 3227014673;
+const VIDIOC_STREAMON: u32 = 1074026002;
+const VIDIOC_STREAMOFF: u32 = 1074026003;
+const VIDIOC_QBUF: u32 = 3227014671; 
+const VIDIOC_DQBUF: u32 = 3227014673;
 
 module! {
     type: RustCamera,
@@ -143,7 +143,7 @@ impl file::Operations for RustCamera {
 
 fn start_streaming(camera_f: &mut bindings::file, my_type: u64) {
     // Activate streaming
-    bindings::vfs_ioctl(&mut camera_f as *mut bindings::file, VIDIOC_STREAMON, my_type);
+    bindings::vfs_ioctl(camera_f as *mut bindings::file, VIDIOC_STREAMON, my_type);
 }
 
 
