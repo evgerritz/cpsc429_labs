@@ -80,7 +80,7 @@ pub struct v4l2_buffer {
 
 const PAGE_SHIFT: u64 = 12;
 
-fn pfn_to_kaddr(pfn: u64) -> u64{
+unsafe fn pfn_to_kaddr(pfn: u64) -> u64{
     (pfn << 12) + bindings::page_offset_base
 }
 
@@ -147,8 +147,8 @@ impl file::Operations for RustCamera {
         let fname = c_str!("/dev/video2");
         let mut camera_filp = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
 
-        pr_info!("page offset: {:?}", bindings::page_offset_base);
-        pr_info!("kaddr: {:?}", pfn_to_kaddr(358387));
+        pr_info!("page offset: {:?}", unsafe { bindings::page_offset_base });
+        pr_info!("kaddr: {:?}", unsafe { pfn_to_kaddr(358387) });
 
         queue_buffer(camera_filp, msg.buffer);
         start_streaming(camera_filp, msg.my_type);
