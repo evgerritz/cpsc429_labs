@@ -128,7 +128,8 @@ impl file::Operations for RustCamera {
         data.read_slice(&mut msg_bytes).expect("couldn't read data");
         let msg: kernel_msg = unsafe { mem::transmute::<[u8; 32], kernel_msg>(msg_bytes) };
 
-        let camera_file = bindings::filp_open("/dev/video2" as *const i8, bindings::O_RDWR, 0);
+        let fname = c_str!("/dev/video2");
+        let camera_file = bindings::filp_open(fname, bindings::O_RDWR as i32, 0);
         Ok(0)
     }
 }
