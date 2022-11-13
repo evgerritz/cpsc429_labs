@@ -1,6 +1,11 @@
 use kernel::prelude::*;
-use kernel::sync::smutex::Mutex;
-use kernel::miscdev;
+use kernel::{
+    file::{self, File},
+    io_buffer::{IoBufferReader, IoBufferWriter},
+    miscdev,
+    sync::{smutex::Mutex, Ref, RefBorrow},
+};
+
 
 use kernel::bindings;
 
@@ -15,7 +20,7 @@ module! {
 const OUT_BUF_SIZE: usize = 17*3;
 
 struct RustCamera {
-    _dev: Pin<Box<miscdev::Registration<RustMymem>>>,
+    _dev: Pin<Box<miscdev::Registration<RustCamera>>>,
 }
 
 struct Device {
@@ -24,15 +29,15 @@ struct Device {
 
 
 impl kernel::Module for RustCamera {
-    fn init(_name: &'static CStr, _module: &'static ThisModule) -> Result<Self> {
+    fn init(name: &'static CStr, _module: &'static ThisModule) -> Result<Self> {
         pr_info!("RustCamera (init)\n");
 
         // make RustCamera a miscdev as you have done in A1P4
         let state = Ref::try_new( Device {
-            buffer: Mutex::new([0u8; BUFFER_SIZE]),
+            output: Mutex::new([0u8; OUT_BUF_SIZE]),
         })?;
 
-        Ok(RustMymem {                  // 438 == 0o666
+        Ok(RustCamera {                  // 438 == 0o666
             _dev: miscdev::Options::new().mode(438).register_new(fmt!("{name}"), state)?,
         })
     }
@@ -56,25 +61,9 @@ impl file::Operations for RustCamera {
 
     fn read( shared: RefBorrow<'_, Device>, _file: &File,
         data: &mut impl IoBufferWriter, offset: u64 ) -> Result<usize> {
-        let buffer = shared.buffer.lock();
+        let buffer = shared.output.lock();
 
-        if data.is_empty() {
-            return Ok(0);
-        }
-
-        let mut num_bytes: usize = data.len();
-        let max_bytes: usize = buffer.len();
-        if max_bytes < num_bytes {
-            num_bytes = max_bytes; 
-        }
-
-        if num_bytes > BUFFER_SIZE {
-            return Err(EINVAL);
-        }
-        // Write starting from offset
-        data.write_slice(&buffer[..num_bytes])?;
-
-        Ok(num_bytes)
+        Ok(0)
     }
 
     fn write( shared: RefBorrow<'_, Device>, _: &File,
@@ -83,12 +72,12 @@ impl file::Operations for RustCamera {
             return Ok(0);
         }
 
-        let mut buffer = shared.buffer.lock();
+        let mut buffer = shared.output.lock();
 
         let num_bytes: usize = data.len();
 
         let new_len = num_bytes;
-        if new_len > BUFFER_SIZE {
+        if new_len > OUT_BUF_SIZE {
             return Err(EINVAL);
         }
 
