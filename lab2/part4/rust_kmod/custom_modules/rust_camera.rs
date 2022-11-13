@@ -161,8 +161,8 @@ impl file::Operations for RustCamera {
                 &mut socket,
             )
         };
-        let saddr: bindings::sockaddr_in = default::Default();
-        saddr.sin_family = bindings::AF_INET;
+        let saddr: bindings::sockaddr_in = Default();
+        saddr.sin_family = bindings::PF_INET;
         saddr.sin_port = 0x401f; // 8000 -> 0x1f40 -> 0x401f
         saddr.sin_addr.s_addr = 0x1000007f; // 127.0.0.1 -> 0x7f000001 -> big endian
 
