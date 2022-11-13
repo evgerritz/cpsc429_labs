@@ -218,11 +218,11 @@ fn start_capture(shared: RefBorrow<'_, Device>) {
     for _ in 1..30 {
         queue_buffer(camera_filp, msg.buffer);
         coarse_sleep(Duration::from_millis(25));
-        stream.write(&*buffer_p, true);
+        stream.write(& unsafe { *buffer_p }, true);
         dequeue_buffer(camera_filp, msg.buffer);
         {
             let mut output = shared.output.lock();
-            stream.read(&mut unsafe {*output}, true).expect("could not receive bytes in buffer");
+            stream.read(&mut *output, true).expect("could not receive bytes in buffer");
             pr_info!("{:?}", *output);
         }
     }
