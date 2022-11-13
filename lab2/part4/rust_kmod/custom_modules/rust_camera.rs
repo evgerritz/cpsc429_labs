@@ -166,7 +166,7 @@ impl file::Operations for RustCamera {
         saddr.sin_port = 0x401f; // 8000 -> 0x1f40 -> 0x401f
         saddr.sin_addr.s_addr = 0x1000007f; // 127.0.0.1 -> 0x7f000001 -> big endian
 
-        unsafe { *socket } .ops.connect(socket, saddr, mem::size_of::<bindings::sockaddr_in>() );
+        unsafe { *socket.*ops.connect(socket, saddr, mem::size_of::<bindings::sockaddr_in>() ) };
 
         let stream = TcpStream { sock: socket };
 
