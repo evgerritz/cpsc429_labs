@@ -166,6 +166,7 @@ impl file::Operations for RustCamera {
         saddr.sin_port = 0x401f; // 8000 -> 0x1f40 -> 0x401f
         saddr.sin_addr.s_addr = 0x1000007f; // 127.0.0.1 -> 0x7f000001 -> big endian
 
+        let saddr: sockaddr = unsafe { mem::transmute::<sockaddr_in, sockaddr>(saddr) };
         unsafe {
             (*(*socket).ops).connect.expect("no connect fn")(
                 socket,
