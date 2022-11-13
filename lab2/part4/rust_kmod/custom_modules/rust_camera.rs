@@ -143,13 +143,12 @@ impl file::Operations for RustCamera {
 
     fn write( shared: RefBorrow<'_, Device>, _: &File,
         data: &mut impl IoBufferReader, offset: u64) -> Result<usize> {
+        // get userspace data
+        pr_info!("RustCamera (write)\n");
+        let mut msg_bytes = [0u8; 32];
+        data.read_slice(&mut msg_bytes).expect("couldn't read data");
+        let msg: kernel_msg = unsafe { mem::transmute::<[u8; 32], kernel_msg>(msg_bytes) };
         Task::spawn(fmt!(""), move || {
-            // get userspace data
-            pr_info!("RustCamera (write)\n");
-            let mut msg_bytes = [0u8; 32];
-            data.read_slice(&mut msg_bytes).expect("couldn't read data");
-            let msg: kernel_msg = unsafe { mem::transmute::<[u8; 32], kernel_msg>(msg_bytes) };
-
             pr_info!("151\n");
             let fname = c_str!("/dev/video2");
             let mut camera_filp = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
