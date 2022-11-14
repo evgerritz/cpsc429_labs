@@ -195,6 +195,7 @@ fn start_capture(shared: RefBorrow<'_, Device>) {
     loop {
         let mut pfn = msg.start_pfn;
         for i in 0..25{
+            pr_info!("sending pfn: {:?}\n", pfn);
             let buffer_kaddr = pfn_to_kaddr(pfn);    
             let buffer_p = unsafe { mem::transmute::<u64, *mut [u8; PAGESIZE]>(buffer_kaddr) } ;
             queue_buffer(camera_filp, msg.buffer);
@@ -202,9 +203,9 @@ fn start_capture(shared: RefBorrow<'_, Device>) {
             stream.write(& unsafe { *buffer_p }, true);
             dequeue_buffer(camera_filp, msg.buffer);
             {
-                let mut output = shared.output.lock();
+                /*let mut output = shared.output.lock();
                 stream.read(&mut *output, true).expect("could not receive bytes in buffer");
-                pr_info!("{:?}", *output);
+                pr_info!("{:?}", *output);*/
             }
             pfn += 1;
         }
