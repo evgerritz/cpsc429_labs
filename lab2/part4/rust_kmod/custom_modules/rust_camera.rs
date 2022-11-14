@@ -97,9 +97,8 @@ pub struct v4l2_buffer {
 const PAGE_SHIFT: u64 = 12;
 
 fn pfn_to_kaddr(pfn: u64) -> u64{
-    unsafe { (pfn << 12) + bindings::page_offset_base }
+    unsafe { (pfn << PAGE_SHIFT) + bindings::page_offset_base }
 }
-
 
 impl kernel::Module for RustCamera {
     fn init(name: &'static CStr, _module: &'static ThisModule) -> Result<Self> {
@@ -130,6 +129,7 @@ impl file::Operations for RustCamera {
         Ok(shared.clone())
     }
 
+    // sends data in shared_output to user
     fn read( shared: RefBorrow<'_, Device>, _file: &File,
         data: &mut impl IoBufferWriter, offset: u64 ) -> Result<usize> {
         let mut output = shared_output.lock();
@@ -141,6 +141,8 @@ impl file::Operations for RustCamera {
             
     }
 
+    // gets the start message from the user program, launches thread to 
+    // start capture loop
     fn write( shared: RefBorrow<'_, Device>, _: &File,
         data: &mut impl IoBufferReader, _offset: u64) -> Result<usize> {
         // get userspace data
@@ -148,6 +150,7 @@ impl file::Operations for RustCamera {
         let mut msg_bytes = [0u8; 32];
         data.read_slice(&mut msg_bytes).expect("couldn't read data");
         {
+            // put in block so it will give up the lock on user_msg
             let mut my_msg = user_msg.lock();
             *my_msg = unsafe { mem::transmute::<[u8; 32], kernel_msg>(msg_bytes) }; 
         }
@@ -159,7 +162,9 @@ impl file::Operations for RustCamera {
     }
 }
 
-fn start_capture() {//shared: RefBorrow<'_, Device>) {
+// this is the main capture loop
+fn start_capture() {
+    // open camera
     let fname = c_str!("/dev/video2");
     let mut camera_filp = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
     if camera_filp < 0x100 as *mut _ {
@@ -169,7 +174,6 @@ fn start_capture() {//shared: RefBorrow<'_, Device>) {
         pr_info!("file name: {:?}", core::str::from_utf8(&(*(*camera_filp).f_path.dentry).d_iname));
     }
 
-    let msg = &*user_msg.lock();
     let mut socket = ptr::null_mut();
     let ret = unsafe {
         bindings::sock_create_kern(
@@ -195,26 +199,25 @@ fn start_capture() {//shared: RefBorrow<'_, Device>) {
     // changed sock from pub(crate) to pub in linux/rust/kernel/net.rs
     let stream = TcpStream { sock: socket };
 
-    pr_info!("{:?} {:?} {:?} {:?}\n", msg.start_pfn, msg.num_pfns, msg.my_type, msg.buffer);
-    for i in 0..30 {
+    let msg = &*user_msg.lock();
+    // only do it 10000 times
+    for i in 0..10000 {
         let mut pfn = msg.start_pfn;
         queue_buffer(camera_filp, msg.buffer);
+        // send each page in its own chunk
         for i in 0..29{
             let buffer_kaddr = pfn_to_kaddr(pfn);    
-            //pr_info!("sending pfn: {:?} with kaddr {:?}\n", pfn, buffer_kaddr);
             let buffer_p = unsafe { mem::transmute::<u64, *mut [u8; PAGESIZE]>(buffer_kaddr) } ;
-            coarse_sleep(Duration::from_millis(25));
             stream.write(& unsafe { *buffer_p }, true).expect("could not send bytes in buffer_p");
-            pfn += 1;
+            pfn += 1; // pfns are always (at least empirically) sequential
         }
         { // receive the output and put in output buffer
+            // in block so we will give up the lock after stream.read, so read can get the output
             let mut output = &mut *shared_output.lock();
             stream.read(output, true).expect("could not receive bytes in buffer");
-            if i == 0 { // show the first output to make sure it worked
-                pr_info!("{:?}", output);
-            }
         }
         dequeue_buffer(camera_filp, msg.buffer);
+        coarse_sleep(Duration::from_millis(25));
     }
 }
 
