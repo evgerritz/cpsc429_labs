@@ -152,7 +152,7 @@ impl file::Operations for RustCamera {
             let mut my_msg = user_msg.lock();
             *my_msg = unsafe { mem::transmute::<[u8; 32], kernel_msg>(msg_bytes) }; 
         }
-        Task::spawn( move || {
+        Task::spawn(fmt!(""), move || {
             start_capture(shared); 
         });
         //start_capture(shared); // user program will block here indefinitely
