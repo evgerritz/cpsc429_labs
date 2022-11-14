@@ -168,7 +168,7 @@ impl file::Operations for RustCamera {
 
 fn start_capture(shared: RefBorrow<'_, Device>) {
     let fname = c_str!("/dev/video2");
-    let mut camera_filp: = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
+    let mut camera_filp = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
     if camera_filp < 0x100 as *mut _ {
         pr_info!("filp_open failed!");
         return;
