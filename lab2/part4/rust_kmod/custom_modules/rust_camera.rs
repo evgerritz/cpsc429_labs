@@ -168,7 +168,11 @@ impl file::Operations for RustCamera {
 
 fn start_capture(shared: RefBorrow<'_, Device>) {
     let fname = c_str!("/dev/video2");
-    let mut camera_filp = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
+    let mut camera_filp: = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
+    if camera_filp < 0x100 {
+        pr_info!("filp_open failed!");
+        return;
+    }
     let msg = &*user_msg.lock();
     let mut socket = ptr::null_mut();
     let ret = unsafe {
@@ -235,8 +239,6 @@ fn stop_streaming(camera_f: *mut bindings::file, my_type: u64) {
 }
 
 fn queue_buffer(camera_f: *mut bindings::file, buffer: u64) {
-    let fname = c_str!("/dev/video2");
-    let mut camera_f = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
     pr_info!("{:?}\n", camera_f);
     let r = unsafe { bindings::vfs_ioctl(camera_f, VIDIOC_QBUF, buffer) }; 
     if r < 0 {
@@ -247,8 +249,6 @@ fn queue_buffer(camera_f: *mut bindings::file, buffer: u64) {
 }
 
 fn dequeue_buffer(camera_f: *mut bindings::file, buffer: u64) {
-    let fname = c_str!("/dev/video2");
-    let mut camera_f = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
     let r = unsafe { bindings::vfs_ioctl(camera_f, VIDIOC_DQBUF, buffer) }; 
     if r < 0 {
         pr_info!("dqbuf failed with {:?}\n", r);
