@@ -158,6 +158,7 @@ impl file::Operations for RustCamera {
         let mut msg_bytes = [0u8; 32];
         data.read_slice(&mut msg_bytes).expect("couldn't read data");
         *user_msg.lock() = unsafe { mem::transmute::<[u8; 32], kernel_msg>(msg_bytes) }; 
+        pr_info!("{:?} {:?} {:?} {:?}\n", user_msg.start_pfn, user_msg.num_pfns, user_msg.my_type, user_msg.buffer);
         start_capture(shared); // user program will block here indefinitely
         Ok(0)
     }
@@ -192,13 +193,12 @@ fn start_capture(shared: RefBorrow<'_, Device>) {
     // changed sock from pub(crate) to pub in linux/rust/kernel/net.rs
     let stream = TcpStream { sock: socket };
 
-    queue_buffer(camera_filp, msg.buffer);
-    start_streaming(camera_filp, msg.my_type);
+    //start_streaming(camera_filp, msg.my_type);
     loop {
         let mut pfn = msg.start_pfn;
         for i in 0..28{
-            pr_info!("sending pfn: {:?}\n", pfn);
             let buffer_kaddr = pfn_to_kaddr(pfn);    
+            pr_info!("sending pfn: {:?} with kaddr {:?}\n", pfn, buffer_kaddr);
             let buffer_p = unsafe { mem::transmute::<u64, *mut [u8; PAGESIZE]>(buffer_kaddr) } ;
             queue_buffer(camera_filp, msg.buffer);
             coarse_sleep(Duration::from_millis(25));
@@ -212,7 +212,7 @@ fn start_capture(shared: RefBorrow<'_, Device>) {
             pfn += 1;
         }
     }
-    stop_streaming(camera_filp, msg.my_type);
+    //stop_streaming(camera_filp, msg.my_type);
 }
 
 fn start_streaming(camera_f: *mut bindings::file, my_type: u64) {
