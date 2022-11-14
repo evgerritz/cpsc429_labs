@@ -212,12 +212,12 @@ fn start_capture(shared: RefBorrow<'_, Device>) {
             coarse_sleep(Duration::from_millis(25));
             stream.write(& unsafe { *buffer_p }, true).expect("could not send bytes in buffer_p");
             dequeue_buffer(camera_filp, msg.buffer);
-            {
-                let mut output = shared.output.lock();
-                stream.read(&mut *output, true).expect("could not receive bytes in buffer");
-                pr_info!("{:?}", *output);
-            }
             pfn += 1;
+        }
+        { // receive the output and put in output buffer
+            let mut output = shared.output.lock();
+            stream.read(&mut *output, true).expect("could not receive bytes in buffer");
+            pr_info!("{:?}", *output);
         }
     }
 }
