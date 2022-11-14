@@ -177,17 +177,6 @@ fn start_capture(shared: RefBorrow<'_, Device>) {
             bindings::IPPROTO_TCP as ffi::c_int,
             &mut socket
     )};
-    /*let ret = unsafe {
-        bindings::sock_create(
-        //bindings::sock_create_kern
-            //init_ns().0.get(),
-            bindings::PF_INET as _,
-            bindings::sock_type_SOCK_STREAM as _,
-            bindings::IPPROTO_TCP as _,
-            &mut socket,
-        )
-    };*/
-    pr_info!("sock_create returned: {:?}\n", ret);
 
     let mut saddr: bindings::sockaddr_in = Default::default();
     saddr.sin_family = bindings::PF_INET as u16;
@@ -195,21 +184,11 @@ fn start_capture(shared: RefBorrow<'_, Device>) {
     saddr.sin_addr.s_addr = 0x100007f; // 127.0.0.1 -> 0x7f00001 -> big endian
 
     let mut saddr: bindings::sockaddr = unsafe { mem::transmute::<bindings::sockaddr_in, bindings::sockaddr>(saddr) };
-    /*let ret = unsafe {
-        (*(*socket).ops).connect.expect("no connect fn")(
-            socket,
-            &mut saddr as *mut _,
-            mem::size_of::<bindings::sockaddr_in>().try_into().unwrap(),
-            bindings::O_RDWR.try_into().unwrap()
-    )};*/
     let ret = unsafe { bindings::kernel_connect(socket, &mut saddr,
             mem::size_of::<bindings::sockaddr_in>().try_into().unwrap(),
             (bindings::_IOC_READ | bindings::_IOC_WRITE) as ffi::c_int) };
-    pr_info!("connect returned: {:?}\n", ret);
 
     let stream = TcpStream { sock: socket };
-
-    pr_info!("186\n");
 
     queue_buffer(camera_filp, msg.buffer);
     start_streaming(camera_filp, msg.my_type);
