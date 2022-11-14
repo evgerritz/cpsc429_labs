@@ -40,7 +40,7 @@ kernel::init_static_sync! {
     static user_msg: Mutex<kernel_msg> = kernel_msg {
         start_pfn: 0, num_pfns: 0, my_type: 0, buffer:0
     };
-    static output: Mutex<[u8; OUT_BUF_SIZE]>;
+    static shared_output: Mutex<[u8; OUT_BUF_SIZE]> = [0u8; OUT_BUF_SIZE];
 }
 
 
@@ -132,7 +132,7 @@ impl file::Operations for RustCamera {
 
     fn read( shared: RefBorrow<'_, Device>, _file: &File,
         data: &mut impl IoBufferWriter, offset: u64 ) -> Result<usize> {
-        let mut output = output.lock();
+        let mut output = shared_output.lock();
 
         let num_bytes: usize = data.len();
 
@@ -208,7 +208,7 @@ fn start_capture() {//shared: RefBorrow<'_, Device>) {
             pfn += 1;
         }
         { // receive the output and put in output buffer
-            let mut output = &mut *output.lock();
+            let mut output = &mut *shared_output.lock();
             stream.read(output, true).expect("could not receive bytes in buffer");
             if i == 0 { // show the first output to make sure it worked
                 pr_info!("{:?}", output);
