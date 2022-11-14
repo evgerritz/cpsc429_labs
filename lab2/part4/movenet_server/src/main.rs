@@ -125,8 +125,9 @@ fn handle_client(mut stream: TcpStream, interpreter: &Interpreter) {
         let mut reader = BufReader::new(&stream);
 
         if let Err(num_bytes) = reader.read_exact(&mut image_bytes) {
+            println!("{:?}", num_bytes);
             break;
-        }
+        } else {  println!("got one!"); }
 
 
         let mut rgb_bytes = vec![0; IM_SIZE*3/2];
@@ -154,6 +155,7 @@ fn handle_client(mut stream: TcpStream, interpreter: &Interpreter) {
         let mut tensor_bytes: [u8; LEN_OUTPUT*4] = [0; LEN_OUTPUT*4];
         f32_to_bytes(&tensor_data, &mut tensor_bytes);
 
+        //println!("{:?}", &tensor_data);
         stream.write(&tensor_bytes).unwrap();
     }
 }
@@ -171,6 +173,7 @@ pub fn main() {
         match stream {
             Ok(stream) => {
                 handle_client(stream, &interpreter);
+                break;
             }
             Err(_) => {
                 println!("Error");
