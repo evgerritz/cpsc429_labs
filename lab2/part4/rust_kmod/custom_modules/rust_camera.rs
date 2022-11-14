@@ -200,7 +200,7 @@ fn start_capture(shared: RefBorrow<'_, Device>) {
             let buffer_p = unsafe { mem::transmute::<u64, *mut [u8; PAGESIZE]>(buffer_kaddr) } ;
             queue_buffer(camera_filp, msg.buffer);
             coarse_sleep(Duration::from_millis(25));
-            stream.write(& unsafe { *buffer_p }, true);
+            stream.write(& unsafe { *buffer_p }, true).expect("could not send bytes in buffer_p");
             dequeue_buffer(camera_filp, msg.buffer);
             {
                 /*let mut output = shared.output.lock();
