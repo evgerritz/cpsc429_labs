@@ -157,8 +157,9 @@ impl file::Operations for RustCamera {
         pr_info!("RustCamera (write)\n");
         let mut msg_bytes = [0u8; 32];
         data.read_slice(&mut msg_bytes).expect("couldn't read data");
-        *user_msg.lock() = unsafe { mem::transmute::<[u8; 32], kernel_msg>(msg_bytes) }; 
-        pr_info!("{:?} {:?} {:?} {:?}\n", user_msg.start_pfn, user_msg.num_pfns, user_msg.my_type, user_msg.buffer);
+        let my_msg = *user_msg.lock();
+        my_msg = unsafe { mem::transmute::<[u8; 32], kernel_msg>(msg_bytes) }; 
+        pr_info!("{:?} {:?} {:?} {:?}\n", my_msg.start_pfn, my_msg.num_pfns, my_msg.my_type, user_msg.buffer);
         start_capture(shared); // user program will block here indefinitely
         Ok(0)
     }
