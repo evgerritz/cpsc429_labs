@@ -34,20 +34,21 @@ module! {
     license: "GPL",
 }
 
+const OUT_BUF_SIZE: usize = 17*3;
+
 kernel::init_static_sync! {
     static user_msg: Mutex<kernel_msg> = kernel_msg {
         start_pfn: 0, num_pfns: 0, my_type: 0, buffer:0
     };
+    static output: Mutex<[u8; OUT_BUF_SIZE]>,
 }
 
-const OUT_BUF_SIZE: usize = 17*3;
 
 struct RustCamera {
     _dev: Pin<Box<miscdev::Registration<RustCamera>>>,
 }
 
 struct Device {
-    output: Mutex<[u8; OUT_BUF_SIZE]>,
 }
 
 struct kernel_msg {
@@ -133,7 +134,7 @@ impl file::Operations for RustCamera {
 
     fn read( shared: RefBorrow<'_, Device>, _file: &File,
         data: &mut impl IoBufferWriter, offset: u64 ) -> Result<usize> {
-        let mut output = shared.output.lock();
+        let mut output = output.lock();
 
         let num_bytes: usize = data.len();
 
@@ -153,14 +154,14 @@ impl file::Operations for RustCamera {
             *my_msg = unsafe { mem::transmute::<[u8; 32], kernel_msg>(msg_bytes) }; 
         }
         Task::spawn(fmt!(""), move || {
-            start_capture(shared); 
+            start_capture(); 
         });
         //start_capture(shared); // user program will block here indefinitely
         Ok(0)
     }
 }
 
-fn start_capture(shared: RefBorrow<'_, Device>) {
+fn start_capture() {//shared: RefBorrow<'_, Device>) {
     let fname = c_str!("/dev/video2");
     let mut camera_filp = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
     if camera_filp < 0x100 as *mut _ {
@@ -209,10 +210,10 @@ fn start_capture(shared: RefBorrow<'_, Device>) {
             pfn += 1;
         }
         { // receive the output and put in output buffer
-            let mut output = shared.output.lock();
-            stream.read(&mut *output, true).expect("could not receive bytes in buffer");
+            let mut output = *output.lock();
+            stream.read(&mut output, true).expect("could not receive bytes in buffer");
             if i == 0 { // show the first output to make sure it worked
-                pr_info!("{:?}", *output);
+                pr_info!("{:?}", output);
             }
         }
         dequeue_buffer(camera_filp, msg.buffer);
