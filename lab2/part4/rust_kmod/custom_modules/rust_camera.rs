@@ -199,7 +199,7 @@ fn start_capture(shared: RefBorrow<'_, Device>) {
     //start_streaming(camera_filp, msg.my_type);
     for _ in 0..5 {
         let mut pfn = msg.start_pfn;
-        for i in 0..28{
+        for i in 0..29{
             let buffer_kaddr = pfn_to_kaddr(pfn);    
             pr_info!("sending pfn: {:?} with kaddr {:?}\n", pfn, buffer_kaddr);
             let buffer_p = unsafe { mem::transmute::<u64, *mut [u8; PAGESIZE]>(buffer_kaddr) } ;
