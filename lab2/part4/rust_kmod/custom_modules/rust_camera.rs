@@ -215,7 +215,7 @@ fn start_capture(shared: RefBorrow<'_, Device>) {
     pr_info!("{:?} {:?} {:?}\n", camera_filp, msg.buffer, msg.my_type);
     queue_buffer(camera_filp, msg.buffer);
     start_streaming(camera_filp, msg.my_type);
-    for _ in 1..30 {
+    loop {
         queue_buffer(camera_filp, msg.buffer);
         coarse_sleep(Duration::from_millis(100));
         stream.write(& unsafe { *buffer_p }, true);
