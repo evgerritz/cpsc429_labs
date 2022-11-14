@@ -172,6 +172,8 @@ fn start_capture(shared: RefBorrow<'_, Device>) {
     if camera_filp < 0x100 as *mut _ {
         pr_info!("filp_open failed!");
         return;
+    } else {
+        pr_info!("file name: {:?}", core::str::from_utf8(&(*(*camera_filp).f_path.dentry).d_iname));
     }
     let msg = &*user_msg.lock();
     let mut socket = ptr::null_mut();
@@ -239,7 +241,6 @@ fn stop_streaming(camera_f: *mut bindings::file, my_type: u64) {
 }
 
 fn queue_buffer(camera_f: *mut bindings::file, buffer: u64) {
-    pr_info!("{:?}\n", camera_f);
     let r = unsafe { bindings::vfs_ioctl(camera_f, VIDIOC_QBUF, buffer) }; 
     if r < 0 {
         pr_info!("qbuf failed with {:?}\n", r);
