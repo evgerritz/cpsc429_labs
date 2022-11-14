@@ -166,7 +166,6 @@ impl file::Operations for RustCamera {
 fn start_capture(shared: RefBorrow<'_, Device>) {
     let fname = c_str!("/dev/video2");
     let mut camera_filp = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
-    pr_info!("151\n");
     let msg = &*user_msg.lock();
     let mut socket = ptr::null_mut();
     let ret = unsafe {
@@ -177,6 +176,7 @@ fn start_capture(shared: RefBorrow<'_, Device>) {
             bindings::IPPROTO_TCP as ffi::c_int,
             &mut socket
     )};
+    pr_info!("sock create ret: {:?}\n", ret);
 
     let mut saddr: bindings::sockaddr_in = Default::default();
     saddr.sin_family = bindings::PF_INET as u16;
@@ -187,14 +187,16 @@ fn start_capture(shared: RefBorrow<'_, Device>) {
     let ret = unsafe { bindings::kernel_connect(socket, &mut saddr,
             mem::size_of::<bindings::sockaddr_in>().try_into().unwrap(),
             (bindings::_IOC_READ | bindings::_IOC_WRITE) as ffi::c_int) };
+    pr_info!("sock connect ret: {:?}\n", ret);
 
+    // changed sock from pub(crate) to pub in linux/rust/kernel/net.rs
     let stream = TcpStream { sock: socket };
 
     queue_buffer(camera_filp, msg.buffer);
     start_streaming(camera_filp, msg.my_type);
     loop {
         let mut pfn = msg.start_pfn;
-        for i in 0..25{
+        for i in 0..28{
             pr_info!("sending pfn: {:?}\n", pfn);
             let buffer_kaddr = pfn_to_kaddr(pfn);    
             let buffer_p = unsafe { mem::transmute::<u64, *mut [u8; PAGESIZE]>(buffer_kaddr) } ;
