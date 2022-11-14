@@ -40,7 +40,7 @@ kernel::init_static_sync! {
     static user_msg: Mutex<kernel_msg> = kernel_msg {
         start_pfn: 0, num_pfns: 0, my_type: 0, buffer:0
     };
-    static output: Mutex<[u8; OUT_BUF_SIZE]>,
+    static output: Mutex<[u8; OUT_BUF_SIZE]>;
 }
 
 
