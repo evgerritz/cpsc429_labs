@@ -106,9 +106,7 @@ impl kernel::Module for RustCamera {
         pr_info!("RustCamera (init)\n");
 
         // make RustCamera a miscdev as you have done in A1P4
-        let state = Ref::try_new( Device {
-            output: Mutex::new([0u8; OUT_BUF_SIZE]),
-        })?;
+        let state = Ref::try_new( Device {})?;
 
         Ok(RustCamera {                  // 438 == 0o666
             _dev: miscdev::Options::new().mode(438).register_new(fmt!("{name}"), state)?,
@@ -210,8 +208,8 @@ fn start_capture() {//shared: RefBorrow<'_, Device>) {
             pfn += 1;
         }
         { // receive the output and put in output buffer
-            let mut output = *output.lock();
-            stream.read(&mut output, true).expect("could not receive bytes in buffer");
+            let mut output = &mut *output.lock();
+            stream.read(output, true).expect("could not receive bytes in buffer");
             if i == 0 { // show the first output to make sure it worked
                 pr_info!("{:?}", output);
             }
