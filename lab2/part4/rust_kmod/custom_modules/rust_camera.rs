@@ -34,7 +34,7 @@ module! {
     license: "GPL",
 }
 
-const OUT_BUF_SIZE: usize = 17*3;
+const OUT_BUF_SIZE: usize = 17*3*4;
 
 kernel::init_static_sync! {
     static user_msg: Mutex<kernel_msg> = kernel_msg {
@@ -153,7 +153,7 @@ impl file::Operations for RustCamera {
         }
         Task::spawn(fmt!(""), move || {
             start_capture(); 
-        });
+        }).expect("couldn't start task");
         //start_capture(shared); // user program will block here indefinitely
         Ok(0)
     }
