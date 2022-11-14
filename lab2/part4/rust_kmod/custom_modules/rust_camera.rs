@@ -202,41 +202,23 @@ fn start_capture(shared: RefBorrow<'_, Device>) {
     let stream = TcpStream { sock: socket };
 
     pr_info!("{:?} {:?} {:?} {:?}\n", msg.start_pfn, msg.num_pfns, msg.my_type, msg.buffer);
-    //start_streaming(camera_filp, msg.my_type);
-    for _ in 0..5 {
+    for _ in 0..30 {
         let mut pfn = msg.start_pfn;
         for i in 0..29{
             let buffer_kaddr = pfn_to_kaddr(pfn);    
-            pr_info!("sending pfn: {:?} with kaddr {:?}\n", pfn, buffer_kaddr);
+            //pr_info!("sending pfn: {:?} with kaddr {:?}\n", pfn, buffer_kaddr);
             let buffer_p = unsafe { mem::transmute::<u64, *mut [u8; PAGESIZE]>(buffer_kaddr) } ;
             queue_buffer(camera_filp, msg.buffer);
             coarse_sleep(Duration::from_millis(25));
             stream.write(& unsafe { *buffer_p }, true).expect("could not send bytes in buffer_p");
             dequeue_buffer(camera_filp, msg.buffer);
             {
-                /*let mut output = shared.output.lock();
+                let mut output = shared.output.lock();
                 stream.read(&mut *output, true).expect("could not receive bytes in buffer");
-                pr_info!("{:?}", *output);*/
+                pr_info!("{:?}", *output);
             }
             pfn += 1;
         }
-    }
-    //stop_streaming(camera_filp, msg.my_type);
-}
-
-fn start_streaming(camera_f: *mut bindings::file, my_type: u64) {
-    // Activate streaming
-    let r = unsafe { bindings::vfs_ioctl(camera_f, VIDIOC_STREAMON, my_type) };
-
-    if r < 0 {
-        pr_info!("streamon failed!\n");
-        pr_info!("{:?}\n", r);
-    }
-}
-
-fn stop_streaming(camera_f: *mut bindings::file, my_type: u64) {
-    if unsafe { bindings::vfs_ioctl(camera_f, VIDIOC_STREAMOFF, my_type) } < 0 {
-        pr_info!("streamoff failed!\n");
     }
 }
 
@@ -245,7 +227,7 @@ fn queue_buffer(camera_f: *mut bindings::file, buffer: u64) {
     if r < 0 {
         pr_info!("qbuf failed with {:?}\n", r);
     } else {
-        pr_info!("qbuf success\n");
+        //pr_info!("qbuf success\n");
     }
 }
 
@@ -254,6 +236,6 @@ fn dequeue_buffer(camera_f: *mut bindings::file, buffer: u64) {
     if r < 0 {
         pr_info!("dqbuf failed with {:?}\n", r);
     } else {
-        pr_info!("dqbuf success\n");
+        //pr_info!("dqbuf success\n");
     }
 }
