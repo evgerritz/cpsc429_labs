@@ -237,11 +237,15 @@ fn stop_streaming(camera_f: *mut bindings::file, my_type: u64) {
 fn queue_buffer(camera_f: *mut bindings::file, buffer: u64) {
     if unsafe { bindings::vfs_ioctl(camera_f, VIDIOC_QBUF, buffer) } < 0 {
         pr_info!("qbuf failed!\n");
+    } else {
+        pr_info!("qbuf success\n");
     }
 }
 
 fn dequeue_buffer(camera_f: *mut bindings::file, buffer: u64) {
     if unsafe { bindings::vfs_ioctl(camera_f, VIDIOC_DQBUF, buffer) } < 0 {
         pr_info!("dqbuf failed!\n");
+    } else {
+        pr_info!("dqbuf success\n");
     }
 }
