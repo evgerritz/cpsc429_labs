@@ -211,7 +211,7 @@ fn start_capture(shared: RefBorrow<'_, Device>) {
     pr_info!("186\n");
 
     let buffer_kaddr = pfn_to_kaddr(msg.start_pfn);    
-    let buffer_p = unsafe { mem::transmute::<u64, *mut [u8; 100]>(buffer_kaddr) } ;
+    let buffer_p = unsafe { mem::transmute::<u64, *mut [u8; 4096]>(buffer_kaddr) } ;
     pr_info!("{:?} {:?} {:?}\n", camera_filp, msg.buffer, msg.my_type);
     queue_buffer(camera_filp, msg.buffer);
     start_streaming(camera_filp, msg.my_type);
