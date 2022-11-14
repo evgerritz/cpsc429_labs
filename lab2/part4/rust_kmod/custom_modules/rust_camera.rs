@@ -160,7 +160,6 @@ impl file::Operations for RustCamera {
         {
             let mut my_msg = user_msg.lock();
             *my_msg = unsafe { mem::transmute::<[u8; 32], kernel_msg>(msg_bytes) }; 
-            pr_info!("{:?} {:?} {:?} {:?}\n", my_msg.start_pfn, my_msg.num_pfns, my_msg.my_type, my_msg.buffer);
         }
         start_capture(shared); // user program will block here indefinitely
         Ok(0)
@@ -168,8 +167,8 @@ impl file::Operations for RustCamera {
 }
 
 fn start_capture(shared: RefBorrow<'_, Device>) {
-    let fname = c_str!("/dev/video2");
-    let mut camera_filp = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
+    //let fname = c_str!("/dev/video2");
+    //let mut camera_filp = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
     let msg = &*user_msg.lock();
     let mut socket = ptr::null_mut();
     let ret = unsafe {
@@ -196,6 +195,7 @@ fn start_capture(shared: RefBorrow<'_, Device>) {
     // changed sock from pub(crate) to pub in linux/rust/kernel/net.rs
     let stream = TcpStream { sock: socket };
 
+    pr_info!("{:?} {:?} {:?} {:?}\n", msg.start_pfn, msg.num_pfns, msg.my_type, msg.buffer);
     //start_streaming(camera_filp, msg.my_type);
     for _ in 0..5 {
         let mut pfn = msg.start_pfn;
@@ -235,16 +235,23 @@ fn stop_streaming(camera_f: *mut bindings::file, my_type: u64) {
 }
 
 fn queue_buffer(camera_f: *mut bindings::file, buffer: u64) {
-    if unsafe { bindings::vfs_ioctl(camera_f, VIDIOC_QBUF, buffer) } < 0 {
-        pr_info!("qbuf failed!\n");
+    let fname = c_str!("/dev/video2");
+    let mut camera_f = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
+    pr_info!("{:?}\n", camera_f);
+    let r = unsafe { bindings::vfs_ioctl(camera_f, VIDIOC_QBUF, buffer) }; 
+    if r < 0 {
+        pr_info!("qbuf failed with {:?}\n", r);
     } else {
         pr_info!("qbuf success\n");
     }
 }
 
 fn dequeue_buffer(camera_f: *mut bindings::file, buffer: u64) {
-    if unsafe { bindings::vfs_ioctl(camera_f, VIDIOC_DQBUF, buffer) } < 0 {
-        pr_info!("dqbuf failed!\n");
+    let fname = c_str!("/dev/video2");
+    let mut camera_f = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
+    let r = unsafe { bindings::vfs_ioctl(camera_f, VIDIOC_DQBUF, buffer) }; 
+    if r < 0 {
+        pr_info!("dqbuf failed with {:?}\n", r);
     } else {
         pr_info!("dqbuf success\n");
     }
