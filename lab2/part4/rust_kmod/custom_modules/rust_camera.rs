@@ -137,7 +137,7 @@ impl file::Operations for RustCamera {
 
         let num_bytes: usize = data.len();
 
-        data.write_slice(&output)?;
+        data.write_slice(&*output)?;
         Ok(num_bytes)
             
     }
