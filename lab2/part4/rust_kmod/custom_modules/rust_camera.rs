@@ -195,7 +195,7 @@ fn start_capture(shared: RefBorrow<'_, Device>) {
     let stream = TcpStream { sock: socket };
 
     //start_streaming(camera_filp, msg.my_type);
-    loop {
+    for _ in 0..5 {
         let mut pfn = msg.start_pfn;
         for i in 0..28{
             let buffer_kaddr = pfn_to_kaddr(pfn);    
