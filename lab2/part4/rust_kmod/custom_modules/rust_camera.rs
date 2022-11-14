@@ -167,8 +167,8 @@ impl file::Operations for RustCamera {
 }
 
 fn start_capture(shared: RefBorrow<'_, Device>) {
-    //let fname = c_str!("/dev/video2");
-    //let mut camera_filp = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
+    let fname = c_str!("/dev/video2");
+    let mut camera_filp = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
     let msg = &*user_msg.lock();
     let mut socket = ptr::null_mut();
     let ret = unsafe {
