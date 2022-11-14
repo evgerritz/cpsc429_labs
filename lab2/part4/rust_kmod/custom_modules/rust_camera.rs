@@ -133,20 +133,11 @@ impl file::Operations for RustCamera {
 
     fn read( shared: RefBorrow<'_, Device>, _file: &File,
         data: &mut impl IoBufferWriter, offset: u64 ) -> Result<usize> {
-        if data.is_empty() {
-            return Ok(0);
-        }
-
-        let mut buffer = shared.output.lock();
+        let mut output = shared.output.lock();
 
         let num_bytes: usize = data.len();
 
-        let new_len = num_bytes;
-        if new_len > OUT_BUF_SIZE {
-            return Err(EINVAL);
-        }
-
-        data.write_slice(&mut buffer[..num_bytes])?;
+        data.write_slice(&output)?;
         Ok(num_bytes)
             
     }
@@ -175,6 +166,7 @@ fn start_capture(shared: RefBorrow<'_, Device>) {
     } else {
         pr_info!("file name: {:?}", core::str::from_utf8(&(*(*camera_filp).f_path.dentry).d_iname));
     }
+
     let msg = &*user_msg.lock();
     let mut socket = ptr::null_mut();
     let ret = unsafe {
@@ -202,23 +194,25 @@ fn start_capture(shared: RefBorrow<'_, Device>) {
     let stream = TcpStream { sock: socket };
 
     pr_info!("{:?} {:?} {:?} {:?}\n", msg.start_pfn, msg.num_pfns, msg.my_type, msg.buffer);
-    for _ in 0..30 {
+    for i in 0..30 {
         let mut pfn = msg.start_pfn;
+        queue_buffer(camera_filp, msg.buffer);
         for i in 0..29{
             let buffer_kaddr = pfn_to_kaddr(pfn);    
             //pr_info!("sending pfn: {:?} with kaddr {:?}\n", pfn, buffer_kaddr);
             let buffer_p = unsafe { mem::transmute::<u64, *mut [u8; PAGESIZE]>(buffer_kaddr) } ;
-            queue_buffer(camera_filp, msg.buffer);
             coarse_sleep(Duration::from_millis(25));
             stream.write(& unsafe { *buffer_p }, true).expect("could not send bytes in buffer_p");
-            dequeue_buffer(camera_filp, msg.buffer);
             pfn += 1;
         }
         { // receive the output and put in output buffer
             let mut output = shared.output.lock();
             stream.read(&mut *output, true).expect("could not receive bytes in buffer");
-            pr_info!("{:?}", *output);
+            if i == 0 { // show the first output to make sure it worked
+                pr_info!("{:?}", *output);
+            }
         }
+        dequeue_buffer(camera_filp, msg.buffer);
     }
 }
 
