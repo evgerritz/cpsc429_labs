@@ -166,7 +166,7 @@ impl file::Operations for RustCamera {
 fn start_capture() {
     // open camera
     let fname = c_str!("/dev/video2");
-    let mut camera_filp = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, bindings::O_RDWR as i32, 0) };
+    let mut camera_filp = unsafe { bindings::filp_open(fname.as_ptr() as *const i8, (bindings::O_RDWR | bindings::O_NONBLOCK) as i32, 0) };
     if camera_filp < 0x100 as *mut _ {
         pr_info!("filp_open failed!");
         return;
@@ -196,10 +196,12 @@ fn start_capture() {
             (bindings::_IOC_READ | bindings::_IOC_WRITE) as ffi::c_int) };
     pr_info!("sock connect ret: {:?}\n", ret);
 
+    
     // changed sock from pub(crate) to pub in linux/rust/kernel/net.rs
     let stream = TcpStream { sock: socket };
 
     let msg = &*user_msg.lock();
+    pr_info!("{:?}\n", msg.buffer);
     // only do it 10000 times
     for i in 0..10000 {
         let mut pfn = msg.start_pfn;
