@@ -25,7 +25,6 @@ struct RustMymem {
 const BUFFER_SIZE: usize = 512*1024;
 
 struct Device {
-    //buffer: Mutex<Vec<u8>>,
     buffer: Mutex<[u8; BUFFER_SIZE]>,
     pos: Mutex<usize>
 }

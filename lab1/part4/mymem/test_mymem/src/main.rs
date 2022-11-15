@@ -44,7 +44,6 @@ fn time_to_read_write(num_bytes: usize) -> io::Result<RWTime> {
         //println!("{:?}\t{:?}\t{:?}", cpu_time, cpu_time.as_secs(), cpu_time.subsec_micros());
         total_wrt_time += cpu_time.subsec_micros() as u64;
 
-
         f.rewind()?;
         let start2 = ProcessTime::try_now().expect("Getting process time failed");
         let n = f.read(&mut buf_to_rd)?;
