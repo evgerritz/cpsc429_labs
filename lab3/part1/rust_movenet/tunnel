@@ -1,0 +1,10 @@
+#!/bin/bash
+#killall ssh
+
+ssh -N -f -L 8080:peacock.zoo.cs.yale.edu:8080 eeg53@node.zoo.cs.yale.edu
+
+# lion zoo node 
+#ssh -N -f -L 8080:128.36.108.21:8080 eeg53@node.zoo.cs.yale.edu
+
+# local host-guest tunnel
+#ssh -N -f -L 8080:localhost:8080 evgerritz@130.132.173.114
