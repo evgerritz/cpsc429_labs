@@ -16,31 +16,38 @@ fn main() {
     let mut buf = Vec::new();
     input_f.read_to_end(&mut buf).unwrap();
     let mut upper = flatbuffers::root::<schema_generated::tflite::Model>(&buf).expect("invalid model").unpack();  
-    //let lower = flatbuffers::root::<schema_generated::tflite::Model>(&buf).expect("invalid model").unpack();  
+    let mut lower = flatbuffers::root::<schema_generated::tflite::Model>(&buf).expect("invalid model").unpack();  
 
     let mut split_index = 0;
     for operator in upper.subgraphs.as_ref().unwrap()[0].operators.as_ref().unwrap() {
-        if operator.outputs.as_ref().unwrap()[0] == 255 {
-            println!("{:?}", operator);
+        split_index += 1;
+        if operator.outputs.as_ref().unwrap()[0] == SPLIT_OP_OUTPUT {
             break;
         }
-        split_index += 1;
     }
 
-    let subgraphs = upper.subgraphs.as_mut().unwrap();
-    let ops_p = subgraphs[0].operators.as_mut().unwrap();
-    *ops_p = (ops_p[..split_index]).to_vec();
+    let upper_subgraphs = upper.subgraphs.as_mut().unwrap();
+    let upper_ops_p = upper_subgraphs[0].operators.as_mut().unwrap();
+    *upper_ops_p = (upper_ops_p[..split_index]).to_vec();
 
-    /*for operator in upper.subgraphs.as_ref().unwrap()[0].operators.as_ref().unwrap() {
-        println!("{:?}", operator);
-    }*/
+    let lower_subgraphs = lower.subgraphs.as_mut().unwrap();
+    let lower_ops_p = lower_subgraphs[0].operators.as_mut().unwrap();
+    *lower_ops_p = (lower_ops_p[split_index..]).to_vec();
 
-    let mut builder = flatbuffers::FlatBufferBuilder::new();
-    let offset = upper.pack(&mut builder);
-    builder.finish(offset, Some(FILE_IDENTIFIER));
-    let upper_bytes = builder.finished_data();
+    let mut upper_builder = flatbuffers::FlatBufferBuilder::new();
+    let upper_offset = upper.pack(&mut upper_builder);
+    upper_builder.finish(upper_offset, Some(FILE_IDENTIFIER));
+    let upper_bytes = upper_builder.finished_data();
+
+    let mut lower_builder = flatbuffers::FlatBufferBuilder::new();
+    let lower_offset = lower.pack(&mut lower_builder);
+    lower_builder.finish(lower_offset, Some(FILE_IDENTIFIER));
+    let lower_bytes = lower_builder.finished_data();
     
     let mut upper_f = File::create("output/upper.tflite").unwrap();
-    //let mut lower_f = File::open("output/lower.tflite").unwrap();
     upper_f.write(upper_bytes).unwrap();
+    
+    let mut lower_f = File::create("output/lower.tflite").unwrap();
+    lower_f.write(lower_bytes).unwrap();
+
 }
