@@ -34,6 +34,16 @@ pub fn image_to_bytes(frame: &Mat) -> Vec<u8> {
     vec_2d.iter().flat_map(|v| v.iter().flat_map(|w| w.as_slice())).cloned().collect()
 }
 
+pub fn f32_to_bytes(floats: &[f32], bytes: &mut [u8]) {
+    let mut i = 0;
+    for float in floats {
+        for byte in float.to_ne_bytes() {
+            bytes[i] = byte;
+            i += 1;
+        }
+    }
+}
+
 pub fn bytes_to_f32(bytes: &[u8], floats: &mut [f32]) {
     const BYTES_PER_F32: usize = 4;
     let mut i = 0;

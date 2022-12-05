@@ -33,11 +33,11 @@ fn main() {
     }
 
     // connect to server
-    //let mut server = Server::new();
+    let mut server = Server::new();
 
     // start interpreter
 	let options = Options::default();
-	let path = format!("../splitter/output/upper.tflite");
+	let path = format!("../../splitter/output/upper.tflite");
 	let interpreter = Interpreter::with_model_path(&path, Some(options)).unwrap();
 	interpreter.allocate_tensors().expect("Allocate tensors [FAILED]");
 

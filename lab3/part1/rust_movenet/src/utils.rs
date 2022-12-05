@@ -69,3 +69,60 @@ pub fn draw_keypoints(img: &mut Mat, keypoints: &[f32], threshold: f32) {
 		}
 	}
 }
+
+fn YUV_2_B(y: i32, u: i32) -> i32 {
+    let y = y as f32;
+    let u = u as f32;
+    (y + 1.732446 * (u - 128.0)) as i32
+}
+fn YUV_2_G(y: i32, u: i32, v: i32) -> i32 {
+    let y = y as f32;
+    let u = u as f32;
+    let v = v as f32;
+    (y - 0.698001 * (u - 128.0) - 0.703125 * (v - 128.0)) as i32
+}
+fn YUV_2_R(y: i32, v: i32) -> i32 {
+    let y = y as f32;
+    let v = v as f32;
+    (y + 1.370705 * (v - 128.0)) as i32
+}
+
+// adapted from https://github.com/kd40629rtlrtl/yuv422_to_rgb/blob/master/yuv_to_rgb.c
+pub fn yuv422_to_rgb24(in_buf: &[u8], out_buf: &mut [u8], width: i32, height: i32) {
+    let len: i32 = width * height;
+    let yData: &[u8] = in_buf;
+    let vData: &[u8] = in_buf; 
+    let uData: &[u8] = in_buf;
+
+    let mut bgr: [i32; 3] = [0; 3];
+    let mut yIdx: usize;
+    let mut uIdx: usize;
+    let mut vIdx: usize;
+    let mut idx: usize;
+    for y in 0..height {
+        for x in 0..width {
+           	yIdx = 2*((y*width) + x) as usize;
+            uIdx = (4*(((y*width) + x)>>1) + 1) as usize;
+            vIdx = (4*(((y*width) + x)>>1) + 3) as usize;
+
+            if yIdx >= in_buf.len() || uIdx >= in_buf.len() || vIdx >= in_buf.len() {
+                return; 
+            }
+            bgr[0] = YUV_2_B(yData[yIdx].into(), uData[uIdx].into()); 
+			bgr[1] = YUV_2_G(yData[yIdx].into(), uData[uIdx].into(), vData[vIdx].into());
+			bgr[2] = YUV_2_R(yData[yIdx].into(), vData[vIdx].into()); 
+
+			for k in 0..3 as usize {
+                idx = ((y * width + x) * 3 + (k as i32)) as usize;
+                if bgr[k] >= 0 && bgr[k] <= 255 {
+                    out_buf[idx] = bgr[k] as u8;
+                } else if bgr[k] < 0 {
+                    out_buf[idx] = 0;
+                } else {
+                    out_buf[idx] = 255;
+                }
+            }
+        }
+    }
+}
+

@@ -18,6 +18,7 @@ fn main() {
     let mut upper = flatbuffers::root::<schema_generated::tflite::Model>(&buf).expect("invalid model").unpack();  
     let mut lower = flatbuffers::root::<schema_generated::tflite::Model>(&buf).expect("invalid model").unpack();  
 
+    // split operators
     let mut split_index = 0;
     for operator in upper.subgraphs.as_ref().unwrap()[0].operators.as_ref().unwrap() {
         split_index += 1;
@@ -25,7 +26,7 @@ fn main() {
             break;
         }
     }
-
+    
     let upper_subgraphs = upper.subgraphs.as_mut().unwrap();
     let upper_ops_p = upper_subgraphs[0].operators.as_mut().unwrap();
     *upper_ops_p = (upper_ops_p[..split_index]).to_vec();
@@ -34,6 +35,11 @@ fn main() {
     let lower_ops_p = lower_subgraphs[0].operators.as_mut().unwrap();
     *lower_ops_p = (lower_ops_p[split_index..]).to_vec();
 
+    // change inputs/outputs
+    *upper_subgraphs[0].outputs.as_mut().unwrap() = vec![81; 1];
+    *lower_subgraphs[0].inputs.as_mut().unwrap() = vec![0; 1];
+
+    // done editing the split network, save to disk
     let mut upper_builder = flatbuffers::FlatBufferBuilder::new();
     let upper_offset = upper.pack(&mut upper_builder);
     upper_builder.finish(upper_offset, Some(FILE_IDENTIFIER));
