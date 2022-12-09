@@ -10,6 +10,15 @@ use opencv::{
 };
 use libc;
 
+pub fn bytes_to_f32(bytes: &[u8], floats: &mut [f32]) {
+    const BYTES_PER_F32: usize = 4;
+    let mut i = 0;
+    for float_bytes in bytes.chunks(BYTES_PER_F32) {
+        let float_bytes: [u8; 4] = float_bytes.try_into().expect("invalid length");
+        floats[i] = f32::from_ne_bytes(float_bytes);
+        i += 1;
+    }
+}
 
 fn f32_to_bytes(floats: &[f32], bytes: &mut [u8]) {
     let mut i = 0;
@@ -25,18 +34,18 @@ fn f32_to_bytes(floats: &[f32], bytes: &mut [u8]) {
 fn handle_client(mut stream: TcpStream, interpreter: &Interpreter) {
     stream.set_read_timeout(None).expect("set read timeout failed");
     stream.set_write_timeout(None).expect("set write timeout failed");
-    const IMG_WIDTH: i32 = 320;
-    const IMG_HEIGHT: i32 = 180;
-    const IM_SIZE: usize = 118784;
+    const LEN_UPPER_OUTPUT: usize = 48*48*24;
     loop {
-        let mut image_bytes: [u8; IM_SIZE] = [0; IM_SIZE];
+        let mut upper_bytes = [0u8; LEN_UPPER_OUTPUT*4];
         let mut reader = BufReader::new(&stream);
 
-        if let Err(num_bytes) = reader.read_exact(&mut image_bytes) {
+        if let Err(num_bytes) = reader.read_exact(&mut upper_bytes) {
             break;
         }
 
-        interpreter.copy(&vec_1d[..], 0).unwrap();
+        let mut upper_floats = [0f32; LEN_UPPER_OUTPUT];
+        bytes_to_f32(&upper_bytes, &mut upper_floats);
+        interpreter.copy(&upper_floats, 0).unwrap();
 
         // run interpreter
         interpreter.invoke().expect("Invoke [FAILED]");
@@ -55,7 +64,7 @@ fn handle_client(mut stream: TcpStream, interpreter: &Interpreter) {
 
 pub fn main() {
 	let options = Options::default();
-	let path = format!("resource/lite-model_movenet_singlepose_lightning_tflite_int8_4.tflite");
+	let path = format!("../splitter/output/lower.tflite");
 	let interpreter = Interpreter::with_model_path(&path, Some(options)).unwrap();
 	interpreter.allocate_tensors().expect("Allocate tensors [FAILED]");
 
