@@ -51,10 +51,13 @@ fn main() {
     // split the operators
     let upper_subgraphs = upper.subgraphs.as_mut().unwrap();
     let lower_subgraphs = lower.subgraphs.as_mut().unwrap();
-    *lower_subgraphs[0].operators.as_mut().unwrap() = upper_subgraphs[0].operators.as_mut().unwrap().split_off(split_index);
+    *lower_subgraphs[0].operators.as_mut().unwrap() = upper_subgraphs[0].operators.as_mut().unwrap()
+        .split_off(split_index);
 
     // add the dequant/quant operators
-    let dequant_out_buffer = BufferT::default(); //{data: Some(vec![0; 48*48*24*4])};
+    let dequant_out_buffer = BufferT::default(); // {data: Some(vec![0; 48*48*24*4])}; - this
+                                                 // results in a segfault, so we use an empty buffer
+                                                 // instead
     upper.buffers.as_mut().unwrap().push(dequant_out_buffer);
     let quant_in_buffer = BufferT::default(); //{data: Some(vec![0; 48*48*24*4])};
     lower.buffers.as_mut().unwrap().push(quant_in_buffer);
