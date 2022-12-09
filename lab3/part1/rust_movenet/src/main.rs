@@ -33,7 +33,7 @@ fn main() {
     }
 
     // connect to server
-    //let mut server = Server::new();
+    let mut server = Server::new();
 
     // start interpreter
 	let options = Options::default();
@@ -41,10 +41,13 @@ fn main() {
 	let interpreter = Interpreter::with_model_path(&path, Some(options)).unwrap();
 	interpreter.allocate_tensors().expect("Allocate tensors [FAILED]");
 
+    // for testing lower network locally
+    /*
 	let options2 = Options::default();
 	let path2 = format!("../splitter/output/lower.tflite");
 	let interpreter2 = Interpreter::with_model_path(&path2, Some(options2)).unwrap();
 	interpreter2.allocate_tensors().expect("Allocate tensors [FAILED]");
+    */
 
     if debug {
         get_info(&media_fd);
@@ -110,29 +113,29 @@ fn main() {
         // get output
         let output_tensor = interpreter.output(0).unwrap();
         let tensor_data = output_tensor.data::<f32>();
-        println!("{:?}", tensor_data.len());
 
         const LEN_OUTPUT: usize = 48*48*24;
         let mut tensor_bytes = [0u8; LEN_OUTPUT*4];
         client::f32_to_bytes(&tensor_data, &mut tensor_bytes);
+        server.send_bytes(&tensor_bytes);
 
-        // test lower model
+        let mut output_bytes = vec![0u8; LEN_OUTPUT*4];
+        let mut output = [0.0f32; LEN_OUTPUT];
+        server.receive_bytes(&mut output_bytes); 
+        client::bytes_to_f32(&output_bytes, &mut output);
+
+        draw_keypoints(&mut blank, &output, 0.25);
+        imshow("MoveNet", &blank).expect("imshow [ERROR]");
+
+        // test lower network locally
+        /*
         interpreter2.copy(tensor_data, 0).unwrap();
         interpreter2.invoke().expect("Invoke [FAILED]");
         let output_tensor2 = interpreter2.output(0).unwrap();
         let tensor_data2 = output_tensor2.data::<f32>();
         draw_keypoints(&mut blank, &tensor_data2, 0.25);
         imshow("MoveNet", &blank).expect("imshow [ERROR]");
-
-
-        let mut output_bytes = vec![0u8; LEN_OUTPUT*4];
-        let mut output = [0.0f32; LEN_OUTPUT];
-
-        //server.send_bytes(&vec_1d);
-        //server.receive_bytes(&mut output_bytes); 
-        //client::bytes_to_f32(&output_bytes, &mut output);
-        //draw_keypoints(&mut blank, &output, 0.25);
-        //imshow("MoveNet", &blank).expect("imshow [ERROR]");
+        */
 
         dequeue_buffer(&media_fd, &mut qbuffer);
 
